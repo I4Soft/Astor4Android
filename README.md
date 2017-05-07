@@ -53,6 +53,7 @@ In Astor4Android, you have the following command line arguments:
 For the argument mode, there are four options:
 
 | Mode | Description |
+| --- | --- |
 | statement | Executes using JGenProg |
 | statement-remove | Executes using JKali |
 | mutation | Executes using JMutRepair |

@@ -50,7 +50,7 @@ In Astor4Android, you have the following command line arguments:
 | port | Port that all AstorWorkers will connect on. |
 
 
-For the argument mode, there are four options:
+For the argument "mode", there are four options:
 
 | Mode | Description |
 | --- | --- |

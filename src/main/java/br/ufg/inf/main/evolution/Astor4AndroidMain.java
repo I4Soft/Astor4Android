@@ -257,10 +257,10 @@ public class Astor4AndroidMain extends AstorMain {
 		CommandExecutorProcess.execute("./gradlew build",location);
 
 		String dependencies = "";
-		List<String> output = CommandExecutorProcess.execute("find . -type f -name *.jar",location+"/app/build/intermediates/exploded-aar/com.android.support/");
+		List<String> output = CommandExecutorProcess.execute("find . -type f -name *.jar",location+"/app/build/intermediates/");
 
 		for(String entry : output)
-			dependencies += location + "/app/build/intermediates/exploded-aar/com.android.support/" + entry + ":";
+			dependencies += location + "/app/build/intermediates/" + entry + ":";
 
 		return dependencies + ConfigurationProperties.getProperty("androidjar");
 	}

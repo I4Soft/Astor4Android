@@ -1,11 +1,24 @@
-*.class
+outputMutation
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# Created by https://www.gitignore.io/api/maven
 
-# Package Files #
-*.war
-*.ear
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+**/.settings/
+**/.project
+**/.classpath
+**/.gitignore
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+/.settings/
+/.classpath
+/.DS_Store
+/.project
+/spooned/

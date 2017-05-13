@@ -18,6 +18,12 @@
 			<email>martin.monperrus@univ-lille1.fr</email>
 			<organization>University of Lille and Inria</organization>
 		</developer>
+
+		<developer>
+			<name>Kayque de Sousa Teixeira</name>
+			<email>kayque23@gmail.com</email>
+			<organization>Universidade Federal de Goiás</organization>
+		</developer>
 	</developers>
 
 	<properties>
@@ -31,7 +37,13 @@
 		<dependency>
 			<groupId>fr.inria.gforge.spoon</groupId>
 			<artifactId>spoon-core</artifactId>
-			<version>5.1.0</version>
+			<version>5.4.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId></groupId>
+					<artifactId>/src/main/resources/log4j.properties</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -81,6 +93,12 @@
 			<artifactId>jte</artifactId>
 			<groupId>fr.spoonlab</groupId>
 			<version>0.0.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1</version>
 		</dependency>
 	</dependencies>
 

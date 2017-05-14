@@ -89,12 +89,6 @@
 		</dependency>
 
 		<dependency>
-			<artifactId>jte</artifactId>
-			<groupId>fr.spoonlab</groupId>
-			<version>0.0.1</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 			<version>1.1</version>
@@ -124,6 +118,11 @@
 			<name>EvoSuite Repository</name>
 			<url>http://www.evosuite.org/m2</url>
 		</repository>
+
+		<repository>
+	        <id>jte</id>
+	        <url>file:///${project.basedir}/lib/jtestex-0.0.1.jar</url>
+	    </repository>
 
 	</repositories>
 

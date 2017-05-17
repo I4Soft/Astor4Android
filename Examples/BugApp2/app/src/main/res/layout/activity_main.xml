@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.root.bugapp.MainActivity">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:ems="4"
+        android:id="@+id/x"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="62dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:ems="4"
+        android:id="@+id/y"
+        android:layout_alignBaseline="@+id/x"
+        android:layout_alignBottom="@+id/x"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:text="Somar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="53dp"
+        android:id="@+id/buttonSomar"
+        android:layout_below="@+id/y"
+        android:layout_alignEnd="@+id/y" />
+
+    <Button
+        android:text="Subtrair"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/buttonSomar"
+        android:layout_alignStart="@+id/buttonSomar"
+        android:layout_marginTop="22dp"
+        android:id="@+id/buttonSubtrair" />
+
+    <Button
+        android:text="Multiplicar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:id="@+id/buttonMultiplicar"
+        android:layout_below="@+id/buttonSubtrair"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:text="Dividir"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:id="@+id/buttonDividir"
+        android:layout_below="@+id/buttonMultiplicar"
+        android:layout_alignStart="@+id/buttonSubtrair" />
+
+    <TextView
+        android:text=""
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sign"
+        android:layout_above="@+id/buttonSomar"
+        android:layout_toStartOf="@+id/buttonMultiplicar" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="4"
+        android:id="@+id/result"
+        android:layout_alignBaseline="@+id/y"
+        android:layout_alignBottom="@+id/y"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="11dp" />
+</RelativeLayout>

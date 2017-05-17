@@ -1,6 +1,10 @@
 outputMutation
-
-# Created by https://www.gitignore.io/api/maven
+astor-classpath.txt
+Examples/BugApp2/.gradle/
+Examples/BugApp2/.idea/
+Examples/BugApp2/build/
+Examples/BugApp2/app/build/
+Examples/BugApp2/local.properties
 
 ### Maven ###
 target/

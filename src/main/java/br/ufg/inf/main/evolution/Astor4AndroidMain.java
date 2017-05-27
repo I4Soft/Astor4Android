@@ -39,6 +39,8 @@ public class Astor4AndroidMain extends AstorMain {
 	CommandLineParser parser = new BasicParser();
 
 	static {
+		options.addOption("androidsdk", true, "Android SDK location");
+
 		options.addOption("androidjar", true, "android.jar location from Android SDK");
 		
 		options.addOption("port", true, "Port that the workers will connected on");
@@ -79,7 +81,7 @@ public class Astor4AndroidMain extends AstorMain {
 
 		findMainPackage(projectFacade);
 
-		copyRJava(projectFacade);
+		//copyRJava(projectFacade);
 	}
 
 	/**
@@ -211,6 +213,9 @@ public class Astor4AndroidMain extends AstorMain {
 		if (cmd.hasOption("androidjar"))
 			ConfigurationProperties.properties.setProperty("androidjar", cmd.getOptionValue("androidjar"));	
 
+		if (cmd.hasOption("androidsdk"))
+			ConfigurationProperties.properties.setProperty("androidsdk", cmd.getOptionValue("androidsdk"));	
+
 		if (cmd.hasOption("package"))
 			ConfigurationProperties.properties.setProperty("package", cmd.getOptionValue("package"));
 
@@ -254,15 +259,28 @@ public class Astor4AndroidMain extends AstorMain {
 	* @param location Location of the project
 	*/
 	private String findDependencies(String location) throws Exception {
-		CommandExecutorProcess.execute("./gradlew build",location);
+		CommandExecutorProcess.execute("./gradlew build -x test -no-daemon", location);
 
 		String dependencies = "";
-		List<String> output = CommandExecutorProcess.execute("find . -type f -name *.jar",location+"/app/build/intermediates/");
+		List<String> output = CommandExecutorProcess.execute("find . -type f -name *.jar",location);
 
 		for(String entry : output)
-			dependencies += location + "/app/build/intermediates/" + entry + ":";
+			dependencies += location + "/" + entry + ":";
 
-		return dependencies + ConfigurationProperties.getProperty("androidjar");
+		output = CommandExecutorProcess.execute("ls app/build/intermediates/classes/",location);
+
+		for(String entry : output){
+			if(entry.equals("debug"))
+				dependencies += location + "/app/build/intermediates/classes/debug/" + ":";
+
+			else if(!entry.equals("release")){
+				dependencies += location + "/app/build/intermediates/classes/" + entry + "/debug/" + ":";
+			}
+
+			break;
+		}
+
+		return dependencies + ConfigurationProperties.getProperty("androidjar") + ":" + ConfigurationProperties.getProperty("androidsdk")+"/tools/lib/";
 	}
 
 

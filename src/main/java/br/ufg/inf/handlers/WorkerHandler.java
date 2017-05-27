@@ -75,7 +75,6 @@ public class WorkerHandler {
 	public static void createNewWorker(Socket socket) throws IOException, InterruptedException {
 		synchronized(WorkerHandler.class){
 			Worker worker = new Worker();
-			putWorker(worker);
 			ProjectSender projectSender = new ProjectSender(worker, socket, projectName, project);
 			projectSender.start();
 		}
@@ -110,27 +109,39 @@ public class WorkerHandler {
 		}
 	}
 
-	private static List<String> getInstrumentationTests(String projectLocation) throws IOException, InterruptedException {
-		List<String> instrumentationTests = CommandExecutorProcess.execute("find . -name *.java", projectLocation+"/app/src/androidTest/java/");
-		List<String> testNames = new ArrayList<String>();
-		
-		for(String test: instrumentationTests){
-			String testName = test.replaceAll("\\./","").split(".java")[0];
-			logger.info("Itest:"+testName.replaceAll("/", "."));
-			testNames.add(testName.replaceAll("/", "."));
+	private static List<String> getInstrumentationTests(String projectLocation) throws InterruptedException {
+		List<String> testNames = null;
+
+		try {
+			testNames = new ArrayList<String>();
+			List<String> instrumentationTests = CommandExecutorProcess.execute("find . -name *.java", projectLocation+"/app/src/androidTest/java/");
+			
+			for(String test: instrumentationTests){
+				String testName = test.replaceAll("\\./","").split(".java")[0];
+				logger.info("Itest:"+testName.replaceAll("/", "."));
+				testNames.add(testName.replaceAll("/", "."));
+			}
+		} catch(IOException ex){
+			logger.info("There are no instrumentation tests");
 		}
 		
 		return testNames;
 	}	
 
 	private static List<String> getUnitTests(String projectLocation) throws IOException, InterruptedException {
-		List<String> unitTests = CommandExecutorProcess.execute("find . -name *.java", projectLocation+"/app/src/test/java/");
-		List<String> testNames = new ArrayList<String>();
+		List<String> testNames = null;
 		
-		for(String test: unitTests){
-			String testName = test.replaceAll("\\./","").split(".java")[0];
-			logger.info("utest:"+testName.replaceAll("/", "."));
-			testNames.add(testName.replaceAll("/", "."));
+		try {
+			testNames = new ArrayList<String>();
+			List<String> unitTests = CommandExecutorProcess.execute("find . -name *.java", projectLocation+"/app/src/test/java/");
+			
+			for(String test: unitTests){
+				String testName = test.replaceAll("\\./","").split(".java")[0];
+				logger.info("utest:"+testName.replaceAll("/", "."));
+				testNames.add(testName.replaceAll("/", "."));
+			}
+		} catch(IOException ex){
+			logger.info("There are no unit tests");
 		}
 		
 		return testNames;
@@ -235,6 +246,7 @@ public class WorkerHandler {
 				worker.setupWorkerConnection(infoSocket);
 				worker.sendProjectName(projectName);
 				worker.sendProject(project);
+				WorkerHandler.putWorker(worker);
 			} catch (InterruptedException | IOException e){
 				e.printStackTrace(); 
 			}

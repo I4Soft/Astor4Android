@@ -16,7 +16,9 @@ public class CommandExecutorProcess  {
 		long t_start = System.currentTimeMillis();
 		ProcessBuilder pb = new ProcessBuilder(command.split(" "));
 		pb.redirectOutput();
-		pb.redirectErrorStream(true);
+		// TODO: find a way to discard error output
+		pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+		pb.redirectErrorStream(false);
 		pb.directory(new File(location));
 		Process p = pb.start();
 		p.waitFor();
@@ -42,7 +44,8 @@ public class CommandExecutorProcess  {
 		long t_start = System.currentTimeMillis();
 		ProcessBuilder pb = new ProcessBuilder(command.split(" "));
 		pb.redirectOutput();
-		pb.redirectErrorStream(true);
+		pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+		pb.redirectErrorStream(false);
 		Process p = pb.start();
 		p.waitFor();
 		p.exitValue();

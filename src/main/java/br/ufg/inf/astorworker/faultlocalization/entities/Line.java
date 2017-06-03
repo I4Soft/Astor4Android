@@ -41,6 +41,8 @@ public class Line implements Serializable {
 	}
 
 	public void addTest(String test, boolean passing){
+		if(tests.contains(test)) return;
+		
 		if(passing)
 			passingExecuted++;
 		else 

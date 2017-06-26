@@ -1,0 +1,25 @@
+outputMutation/
+astor-classpath.txt
+projects/
+results/
+scripts/
+
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+**/.settings/
+**/.project
+**/.classpath
+
+/.settings/
+/.classpath
+/.DS_Store
+/.project
+/spooned/

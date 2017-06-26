@@ -1,0 +1,228 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.inria.sacha.automaticRepair</groupId>
+	<artifactId>astor</artifactId>
+	<description>ASTOR: AST transformation for Repairs</description>
+	<version>0.0.2-SNAPSHOT</version>
+
+	<developers>
+		<developer>
+			<name>Matias Martinez</name>
+			<email>matias.sebastian.martinez@gmail.com</email>
+			<organization>University of Lille and Inria</organization>
+		</developer>
+
+		<developer>
+			<name>Martin Monperrus</name>
+			<email>martin.monperrus@univ-lille1.fr</email>
+			<organization>University of Lille and Inria</organization>
+		</developer>
+
+		<developer>
+			<name>Kayque de Sousa Teixeira</name>
+			<email>kayque23@gmail.com</email>
+			<organization>Universidade Federal de Goiás</organization>
+		</developer>
+	</developers>
+
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.inria.gforge.spoon</groupId>
+			<artifactId>spoon-core</artifactId>
+			<version>5.4.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId></groupId>
+					<artifactId>/src/main/resources/log4j.properties</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
+		</dependency>
+
+		<dependency>
+      		<groupId>org.apache.commons</groupId>
+      		<artifactId>commons-collections4</artifactId>
+      		<version>4.0</version>
+   		</dependency>
+
+		<dependency>
+			<groupId>com.gzoltar</groupId>
+			<artifactId>gzoltar</artifactId>
+			<version>0.1.1</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>inria</id>
+			<url>http://spoon.gforge.inria.fr/repositories/releases/</url>
+		</repository>
+		<repository>
+			<id>gforge.inria.fr-snapshot</id>
+			<name>Maven Repository for Spoon Snapshot</name>
+			<url>http://spoon.gforge.inria.fr/repositories/snapshots/</url>
+			<snapshots />
+		</repository>
+		<repository>
+			<id>gforge.inria.fr-release</id>
+			<name>Maven Repository for Spoon Release</name>
+			<url>http://sachaproject.gforge.inria.fr/repositories/releases/</url>
+			<snapshots />
+		</repository>
+
+		<repository>
+			<id>EvoSuite</id>
+			<name>EvoSuite Repository</name>
+			<url>http://www.evosuite.org/m2</url>
+		</repository>
+
+		<repository>
+	        <id>jte</id>
+	        <url>file:///${project.basedir}/lib/jtestex-0.0.1.jar</url>
+	    </repository>
+
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>fully.qualified.MainClass</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id> <!-- this is used for inheritance merges -->
+						<phase>package</phase> <!-- bind to the packaging phase -->
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>outputMutation</directory>
+							<followSymlinks>true</followSymlinks>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>astor-junit-exec</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<artifactId>jte</artifactId>
+							<groupId>fr.spoonlab</groupId>
+							<version>0.0.1</version>
+							<file>${basedir}/lib/jtestex-0.0.1.jar</file>
+							<packaging>jar</packaging>
+							<createChecksum>true</createChecksum>
+							<generatePom>true</generatePom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.16</version>
+				<configuration>
+					<!-- force each test in a separate vm to work around a memory leak -->
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
+			<!-- Required for codecov.io -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.5.201505241946</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+</project>

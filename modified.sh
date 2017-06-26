@@ -1,0 +1,1 @@
+for class in $(find src/main/java/ -name *.java); do x=$(cat $class | egrep "(\[MODIFIED\])" | wc -c) ; if [ $x -gt 0 ] ; then echo $class; fi ; done

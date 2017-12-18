@@ -120,9 +120,14 @@
 		</repository>
 
 		<repository>
-	        <id>jte</id>
-	        <url>file:///${project.basedir}/lib/jtestex-0.0.1.jar</url>
-	    </repository>
+		        <id>jte</id>
+		        <url>file:///${project.basedir}/lib/jtestex-0.0.1.jar</url>
+	    	</repository>
+
+		<repository>
+			<id>eclipse</id>
+			<url>file:///${project.basedir}/lib</url>
+		</repository>
 
 	</repositories>
 

@@ -115,9 +115,17 @@ public class Astor4AndroidMain extends AstorMain {
 		String mainPackage = null;
 
 		while((line = br.readLine()) != null){
-			if(line.contains("package"))
-				mainPackage = line.split("\"")[1];
+			if(line.contains("package")){
+				int tempFix = line.split("\"").length;
+				
+				if(tempFix > 1)
+					mainPackage = line.split("\"")[1];
+				else
+					mainPackage = line.split("\'")[1];
+				break;
+			}
 		}
+		
 		br.close();
 
 		ConfigurationProperties.properties.setProperty("package", mainPackage);

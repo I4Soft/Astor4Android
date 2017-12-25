@@ -319,12 +319,7 @@ public class Astor4AndroidMain extends AstorMain {
 		saveDependenciesLocally(location);
 
 		String dependencies = "";
-		List<String> output = CommandExecutorProcess.execute("find " + location + "/app -type f -name *.jar");
-
-		for(String entry : output)
-			dependencies += entry + ":";
-		
-		output = CommandExecutorProcess.execute("find " + location + "/localrepo -type f -name *.jar");
+		List<String> output = CommandExecutorProcess.execute("find " + location + " -type f -name *.jar");
 
 		for(String entry : output)
 			dependencies += entry + ":";

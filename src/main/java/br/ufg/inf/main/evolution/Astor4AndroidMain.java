@@ -323,6 +323,11 @@ public class Astor4AndroidMain extends AstorMain {
 
 		for(String entry : output)
 			dependencies += entry + ":";
+		
+		output = CommandExecutorProcess.execute("find " + location + "/localrepo -type f -name *.jar");
+
+		for(String entry : output)
+			dependencies += entry + ":";
 
 		CommandExecutorProcess.execute("./gradlew build -x test -no-daemon", location);
 

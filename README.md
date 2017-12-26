@@ -41,6 +41,7 @@ In Astor4Android, you have the following command line arguments:
 | location | Location of the Android project to repair. The project must be clean. You can clean it using the command `./gradlew clean` inside the project's directory. |
 | mode | Mode of execution. More information on the next table. |
 | androidjar | Location of the android.jar. android.jar is usually found at $ANDROID_HOME/platforms/android-VERSION/android.jar), where VERSION is a number. |
+| androidsdk | Location of the Android SDK folder. Usually this argument is set to $ANDROID_HOME. |
 | jvm4testexecution | Location of the java executable. Usually set to %JAVA_HOME/bin. |
 | javacompliancelevel | Compliance level of the source code. 8 is the recommended value. |
 | stopfirst | Determines if the execution should be stopped after the first fix (true of false). |
@@ -78,4 +79,4 @@ To execute Astor4Android, follow these instructions:
 
    Example:  
 
-			java -cp $(cat astor-classpath.txt):target/classes br.ufg.inf.main.evolution.Astor4AndroidMain -mode statement -location $(pwd)/Examples/BugApp2 -androidjar $ANDROID_HOME/platforms/android-25/android.jar -jvm4testexecution $JAVA_HOME/bin  -javacompliancelevel 8 -stopfirst true  -flthreshold 0.9  -unitfailing com.example.root.bugapp2.ExampleUnitTest -instrumentationfailing com.example.root.bugapp2.ExampleInstrumentedTest -port 6665  
+			java -cp $(cat astor-classpath.txt):target/classes br.ufg.inf.main.evolution.Astor4AndroidMain -mode statement -location $(pwd)/Examples/Simple-Calculator -androidsdk $ANDROID_HOME -androidjar $ANDROID_HOME/platforms/android-25/android.jar -jvm4testexecution $JAVA_HOME/bin  -javacompliancelevel 8 -stopfirst true  -flthreshold 0.9  -instrumentationfailing com.simplemobiletools.calculator.MainActivityTest#rootTest:com.simplemobiletools.calculator.MainActivityTest#complexTest -port 6665  

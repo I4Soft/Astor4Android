@@ -1,19 +1,15 @@
 task saveDependencies(type: Copy) {
     project.configurations.findAll().each { config ->
-        if(!config.getName().equals('default') && !config.getName().equals('archives') && !config.getName().equals('signatures') && !config.getName().equals('default-mapping')){
-            config.resolvedConfiguration.getResolvedArtifacts().each { artifact ->
+            config.copy().resolvedConfiguration.getResolvedArtifacts().each { artifact ->
                 from artifact.file
                 into 'localrepo'
             }
-        }
     }
 
     project.buildscript.configurations.findAll().each { config ->
-        if(!config.getName().equals('default') && !config.getName().equals('archives') && !config.getName().equals('signatures') && !config.getName().equals('default-mapping')){
-            config.resolvedConfiguration.getResolvedArtifacts().each { artifact ->
+            config.copy().resolvedConfiguration.getResolvedArtifacts().each { artifact ->
                 from artifact.file
                 into 'localrepo'
             }
-        }
     }
 }

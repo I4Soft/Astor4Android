@@ -66,6 +66,8 @@ public class Astor4AndroidMain extends AstorMain {
 			projectName = locFile.getName();
 		}
 
+		deleteOldWorkingDirectory(projectName, method);
+
 		//Creating clean copy of the project for the workers
 		log.info("Project name: "+projectName);
 		String projectCopy = createProjectCopy(location, "", method, projectName);
@@ -263,6 +265,15 @@ public class Astor4AndroidMain extends AstorMain {
 		FileUtils.copyDirectory(new File(location), projectCopy);
 		CommandExecutorProcess.execute("chmod -R 777 " + copy);
 		return copy;
+	}
+
+
+	private void deleteOldWorkingDirectory(String projectName, String method) throws Exception {
+		String oldDir = method + "-" + projectName;
+		String oldWorkingDir = ConfigurationProperties.getProperty("workingDirectory") + File.separator + oldDir;
+		File tmp = new File(oldWorkingDir);
+		FileUtils.deleteDirectory(tmp);
+		tmp.mkdirs();
 	}
 
 	private void saveDependenciesLocally(String location) throws Exception {

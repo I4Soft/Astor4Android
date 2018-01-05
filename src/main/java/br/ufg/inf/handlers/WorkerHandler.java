@@ -23,9 +23,9 @@ import org.apache.log4j.Logger;
 import br.ufg.inf.handlers.entities.Worker;
 import br.ufg.inf.handlers.entities.TestType;
 import br.ufg.inf.astorworker.faultlocalization.entities.Line;
-import br.ufg.inf.executors.CommandExecutorProcess;
 import fr.inria.astor.core.faultlocalization.entity.SuspiciousCode;
 import fr.inria.astor.core.setup.ConfigurationProperties;
+import br.inf.ufg.astor4android.utils.FileSystemUtils;
 
 
 
@@ -136,15 +136,15 @@ public class WorkerHandler {
 
 		try {
 			testNames = new ArrayList<String>();
-			List<String> instrumentationTests = CommandExecutorProcess.execute("find . -name *.java", projectLocation + "/app/src/androidTest/java/");
+			List<String> instrumentationTests = FileSystemUtils.findFilesWithExtension(new File(projectLocation + "/app/src/androidTest/java/"), "java", true);
 			
 			for(String test : instrumentationTests){
-				List<String> functionNames = getFunctionNames(projectLocation + "/app/src/androidTest/java/" + test);
-				String testName = test.replaceAll("\\./","").split(".java")[0];
+				List<String> functionNames = getFunctionNames(test);
+				String testName = test.split(".app.src.androidTest.java.")[1].replaceAll("\\./|\\.\\\\","").split(".java")[0];
 
 				for(String function : functionNames){
-					logger.info("Instrumentation test: " + testName.replaceAll("/", "\\.") + "#" + function);
-					testNames.add(testName.replaceAll("/", "\\.") + "#" + function);
+					logger.info("Instrumentation test: " + testName.replaceAll("/|\\\\", "\\.") + "#" + function);
+					testNames.add(testName.replaceAll("/|\\\\", "\\.") + "#" + function);
 				}
 				
 			}
@@ -160,15 +160,15 @@ public class WorkerHandler {
 		
 		try {
 			testNames = new ArrayList<String>();
-			List<String> unitTests = CommandExecutorProcess.execute("find . -name *.java", projectLocation+"/app/src/test/java/");
+			List<String> unitTests = FileSystemUtils.findFilesWithExtension(new File(projectLocation + "/app/src/test/java/"), "java", true);
 			
 			for(String test: unitTests){
-				List<String> functionNames = getFunctionNames(projectLocation + "/app/src/test/java/" + test);
-				String testName = test.replaceAll("\\./","").split(".java")[0];
+				List<String> functionNames = getFunctionNames(test);
+				String testName = test.split(".app.src.test.java.")[1].replaceAll("\\./|\\.\\\\","").split(".java")[0];
 
 				for(String function : functionNames){
-					logger.info("Unit test: " + testName.replaceAll("/", "\\.") + "#" + function);
-					testNames.add(testName.replaceAll("/", "\\.") + "#" + function);
+					logger.info("Unit test: " + testName.replaceAll("/|\\\\", "\\.") + "#" + function);
+					testNames.add(testName.replaceAll("/|\\\\", "\\.") + "#" + function);
 				}
 			}
 		} catch(IOException ex){
@@ -179,11 +179,11 @@ public class WorkerHandler {
 	}
 
 	public static List<SuspiciousCode> runFaultLocalization() throws Exception {
-
 		//Getting name of all classes
-		List<String> output = CommandExecutorProcess.execute("find . -name *.java", project.getAbsolutePath()+"/app/src/main/java/");
+
+		List<String> output = FileSystemUtils.findFilesWithExtension(new File(project.getAbsolutePath() + "/app/src/main/java/"), "java", true);
 		for(String clss : output){
-			clss = clss.replaceAll("\\./", "").split(".java")[0].replaceAll("/", "\\.");
+			clss = clss.split(".app.src.main.java.")[1].replaceAll("\\./|\\.\\\\", "").split(".java")[0].replaceAll("/|\\\\", "\\.");
 			String[] tokens = clss.split("\\.");
 			classes.put(tokens[tokens.length-1], clss);
 			logger.info("["+tokens[tokens.length-1]+" , "+clss+"]");

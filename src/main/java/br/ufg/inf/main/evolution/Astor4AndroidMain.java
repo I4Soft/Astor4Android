@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -20,12 +22,14 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import br.ufg.inf.handlers.WorkerHandler;
 import br.ufg.inf.handlers.ConnectionHandler;
 import br.ufg.inf.executors.CommandExecutorProcess;
+import br.ufg.inf.executors.AndroidToolsExecutorProcess;
 import fr.inria.main.AbstractMain;
 import fr.inria.main.evolution.AstorMain;
 import fr.inria.astor.core.entities.ProgramVariant;
 import fr.inria.astor.core.setup.ConfigurationProperties;
 import fr.inria.astor.core.setup.ProjectRepairFacade;
 import fr.inria.astor.core.setup.ProjectConfiguration;
+import br.inf.ufg.astor4android.utils.FileSystemUtils;
 
 /**
  * The main class of the system.
@@ -66,10 +70,10 @@ public class Astor4AndroidMain extends AstorMain {
 			projectName = locFile.getName();
 		}
 
-		deleteOldWorkingDirectory(projectName, method);
+		createWorkingDirectory(projectName, method);
 
 		//Creating clean copy of the project for the workers
-		log.info("Project name: "+projectName);
+		log.info("Project name: " + projectName);
 		String projectCopy = createProjectCopy(location, "", method, projectName);
 		String cleanCopy = createProjectCopy(location, "clean", method, projectName);
 
@@ -85,24 +89,6 @@ public class Astor4AndroidMain extends AstorMain {
 		projectFacade.setupWorkingDirectories(ProgramVariant.DEFAULT_ORIGINAL_VARIANT);
 
 		findMainPackage(projectFacade);
-
-		//copyRJava(projectFacade);
-	}
-
-	/**
-	* Copy R.java from the project to the original variant.
-	*
-	* @param projectFacade
-	*/
-	private void copyRJava(ProjectRepairFacade projectFacade) throws Exception {
-		File destination = new File(projectFacade.getProperties().getWorkingDirForSource() + File.separator 
-				+ ProgramVariant.DEFAULT_ORIGINAL_VARIANT);
-		FileUtils.copyFile(
-			new File(projectFacade.getProperties().getOriginalProjectRootDir() +
-				"/app/build/generated/source/r/release/" +
-				ConfigurationProperties.getProperty("package").replaceAll("\\.","/") +
-				"/R.java"), 
-			new File(destination.getPath()+"/"+ConfigurationProperties.getProperty("package").replaceAll("\\.","/")+"/R.java"));
 	}
 
 
@@ -112,18 +98,19 @@ public class Astor4AndroidMain extends AstorMain {
 	* @param projectFacade
 	*/
 	private void findMainPackage(ProjectRepairFacade projectFacade) throws Exception {
-		BufferedReader br = new BufferedReader(new FileReader(new File(projectFacade.getProperties().getOriginalProjectRootDir() + "/app/src/main/AndroidManifest.xml")));
+		Pattern packagePattern = Pattern.compile("\\s*(package)\\s*(=)\\s*(\'|\")([ .a-zA-Z0-9]+)(\'|\")\\s*(.*?)\\s*");
+
+		BufferedReader br = new BufferedReader(
+				new FileReader(new File(projectFacade.getProperties().getOriginalProjectRootDir() + "/app/src/main/AndroidManifest.xml")));
+		
 		String line = null;
-		String mainPackage = null;
+		String mainPackage = null ;
 
 		while((line = br.readLine()) != null){
-			if(line.contains("package")){
-				int tempFix = line.split("\"").length;
-				
-				if(tempFix > 1)
-					mainPackage = line.split("\"")[1];
-				else
-					mainPackage = line.split("\'")[1];
+			Matcher packageMatcher = packagePattern.matcher(line);
+
+			if (packageMatcher.matches()) {
+				mainPackage = packageMatcher.group(4);
 				break;
 			}
 		}
@@ -143,23 +130,21 @@ public class Astor4AndroidMain extends AstorMain {
 			projectIdentifier = locFile.getName();
 		}
 
-		String key = File.separator + method + "-" + projectIdentifier + File.separator;
+		String key = "/" + method + "-" + projectIdentifier + "/";
 		String workingDirForSource = ConfigurationProperties.getProperty("workingDirectory") + key + "/src/";
 		String workingDirForBytecode = ConfigurationProperties.getProperty("workingDirectory") + key + "/bin/";
-		String originalProjectRoot = location + File.separator;
+		String originalProjectRoot = location + "/";
 		
-		String libdir = dependencies;
-
 	
 		ProjectConfiguration properties = new ProjectConfiguration();
-		properties.setWorkingDirForSource(workingDirForSource);
-		properties.setWorkingDirForBytecode(workingDirForBytecode);
+		properties.setWorkingDirForSource(FileSystemUtils.fixPath(workingDirForSource));
+		properties.setWorkingDirForBytecode(FileSystemUtils.fixPath(workingDirForBytecode));
 
 		properties.setFixid(projectIdentifier);
 
-		properties.setOriginalProjectRootDir(originalProjectRoot);
+		properties.setOriginalProjectRootDir(FileSystemUtils.fixPath(originalProjectRoot));
 		
-		List<String> src = Arrays.asList(new String[] { "/app/src/main/java/", null });
+		List<String> src = Arrays.asList(new String[] { FileSystemUtils.fixPath("/app/src/main/java/"), null });
 
 		properties.setOriginalDirSrc(src);
 
@@ -258,17 +243,18 @@ public class Astor4AndroidMain extends AstorMain {
 	*/
 	private String createProjectCopy(String location, String workingDirSubLocation, String method, String projectName) 
 			throws Exception {
-		String key = File.separator + method + "-" + projectName + File.separator;
-		String copy = ConfigurationProperties.getProperty("workingDirectory") + key + "/" + workingDirSubLocation + "/" + projectName;
+		String key = method + "-" + projectName;
+		String copy = ConfigurationProperties.getProperty("workingDirectory") + "/" + key + "/" + workingDirSubLocation + "/" + projectName;
 		File projectCopy = new File(copy);
 		projectCopy.mkdirs();
 		FileUtils.copyDirectory(new File(location), projectCopy);
-		CommandExecutorProcess.execute("chmod -R 777 " + copy);
+		if(!AndroidToolsExecutorProcess.getOperatingSystem().equals("Windows"))
+			FileSystemUtils.getPermissionsForDirectory(projectCopy);
 		return copy;
 	}
 
 
-	private void deleteOldWorkingDirectory(String projectName, String method) throws Exception {
+	private void createWorkingDirectory(String projectName, String method) throws Exception {
 		String oldDir = method + "-" + projectName;
 		String oldWorkingDir = ConfigurationProperties.getProperty("workingDirectory") + File.separator + oldDir;
 		File tmp = new File(oldWorkingDir);
@@ -280,14 +266,14 @@ public class Astor4AndroidMain extends AstorMain {
 		String repositoryFormat = "\n\tmaven {\n\t\turl '%s'\n\t}\n";
 
 		List<String> m2repositories = Arrays.asList(new String[] { 
-				ConfigurationProperties.getProperty("androidsdk") + "/extras/android/m2repository/"
-			  , ConfigurationProperties.getProperty("androidsdk") + "/extras/google/m2repository/" });
+				ConfigurationProperties.getProperty("androidsdk") + FileSystemUtils.fixPath("/extras/android/m2repository/")
+			  , ConfigurationProperties.getProperty("androidsdk") + FileSystemUtils.fixPath("/extras/google/m2repository/") });
 
-		BufferedWriter out = new BufferedWriter(new FileWriter(location + "/app/build.gradle", true));
+		BufferedWriter out = new BufferedWriter(new FileWriter(new File(location + "/app/build.gradle"), true));
 
 		out.write("\n\nrepositories {");
 		for(String repository : m2repositories)
-			out.write(String.format(repositoryFormat, repository));
+			out.write(String.format(repositoryFormat, repository.replace("\\", "\\\\")));
 		out.write("\n\tmavenLocal()\n}\n\n");
 		
 
@@ -299,23 +285,23 @@ public class Astor4AndroidMain extends AstorMain {
         in.close();
    		out.close();
 
-   		CommandExecutorProcess.execute("./gradlew saveDependencies -no-daemon", location);
+   		AndroidToolsExecutorProcess.runGradleTask(location, "saveDependencies");
 
    		extractAAR(location + "/app/localrepo");
 	}
 
 
 	private void extractAAR(String libLocation) throws Exception {
-		List<String> output = CommandExecutorProcess.execute("find " + libLocation + " -type f -name *.aar -printf %f\n");
+		List<String> output = FileSystemUtils.findFilesWithExtension(new File(libLocation), "aar", false);
 
 		for(String aar : output){
 			String aarFolder = aar.split(".aar")[0];
-			CommandExecutorProcess.execute("mkdir " + aarFolder, libLocation);
-			CommandExecutorProcess.execute("cp " + aar + " " + aarFolder, libLocation);
-			CommandExecutorProcess.execute("jar xf " + aar, libLocation + "/" + aarFolder);
-			CommandExecutorProcess.execute("mkdir jars", libLocation + "/" + aarFolder);
-			CommandExecutorProcess.execute("mv classes.jar jars", libLocation + "/" + aarFolder);
-			CommandExecutorProcess.execute("rm " + aar, libLocation + "/" + aarFolder);
+			File aarDirectory = new File(FileSystemUtils.fixPath(libLocation + "/" + aarFolder));
+			FileUtils.moveFileToDirectory(new File(FileSystemUtils.fixPath(libLocation + "/" + aar)), aarDirectory, true);
+			CommandExecutorProcess.execute("jar xf " + aar, FileSystemUtils.fixPath(libLocation + "/" + aarFolder));
+			File jarsDirectory = new File(FileSystemUtils.fixPath(libLocation + "/" + aarFolder + "/" + "jars"));
+			FileUtils.moveFileToDirectory(new File(FileSystemUtils.fixPath(libLocation + "/" + aarFolder + "/classes.jar")), jarsDirectory, true);
+			FileUtils.forceDelete(new File(FileSystemUtils.fixPath( libLocation + "/" + aarFolder + "/" + aar)));
 		}
 	}
 
@@ -330,21 +316,21 @@ public class Astor4AndroidMain extends AstorMain {
 		saveDependenciesLocally(location);
 
 		String dependencies = "";
-		List<String> output = CommandExecutorProcess.execute("find " + location + " -type f -name *.jar");
+		List<String> output = FileSystemUtils.findFilesWithExtension(new File(location), "jar", true);
 
 		for(String entry : output)
-			dependencies += entry + ":";
+			dependencies += entry + System.getProperty("path.separator");
 
-		CommandExecutorProcess.execute("./gradlew build -x test -no-daemon", location);
+		AndroidToolsExecutorProcess.compileProject(location);
 
-		output = CommandExecutorProcess.execute("ls app/build/intermediates/classes/",location);
+		output = FileSystemUtils.listContentsDirectory(location + "/app/build/intermediates/classes/");
 
 		for(String entry : output){
 			if(entry.equals("debug"))
-				dependencies += location + "/app/build/intermediates/classes/debug/" + ":";
+				dependencies += FileSystemUtils.fixPath(location + "/app/build/intermediates/classes/debug/") + System.getProperty("path.separator");
 
 			else if(!entry.equals("release")){
-				dependencies += location + "/app/build/intermediates/classes/" + entry + "/debug/" + ":";
+				dependencies += FileSystemUtils.fixPath(location + "/app/build/intermediates/classes/" + entry + "/debug/") + System.getProperty("path.separator");
 			}
 		}
 
@@ -370,6 +356,7 @@ public class Astor4AndroidMain extends AstorMain {
 
 	public static void main(String[] args) throws Exception {
 		Astor4AndroidMain m = new Astor4AndroidMain();
+		AndroidToolsExecutorProcess.setup(ConfigurationProperties.getProperty("androidsdk"));
 		m.execute(args);
 		System.exit(0);
 	}

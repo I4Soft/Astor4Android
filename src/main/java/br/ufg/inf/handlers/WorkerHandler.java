@@ -133,20 +133,24 @@ public class WorkerHandler {
 
 	private static List<String> getInstrumentationTests(String projectLocation) throws Exception {
 		List<String> testNames = null;
-
+		File testFolder = null;
 		try {
 			testNames = new ArrayList<String>();
-			List<String> instrumentationTests = FileSystemUtils.findFilesWithExtension(new File(projectLocation + "/app/src/androidTest/java/"), "java", true);
-			
-			for(String test : instrumentationTests){
-				List<String> functionNames = getFunctionNames(test);
-				String testName = test.split(".app.src.androidTest.java.")[1].replaceAll("\\./|\\.\\\\","").split(".java")[0];
+			testFolder = new File(projectLocation + "/app/src/androidTest/java/");
 
-				for(String function : functionNames){
-					logger.info("Instrumentation test: " + testName.replaceAll("/|\\\\", "\\.") + "#" + function);
-					testNames.add(testName.replaceAll("/|\\\\", "\\.") + "#" + function);
+			if(testFolder.exists()){
+				List<String> instrumentationTests = FileSystemUtils.findFilesWithExtension(testFolder, "java", true);
+			
+				for(String test : instrumentationTests){
+					List<String> functionNames = getFunctionNames(test);
+					String testName = test.split(".app.src.androidTest.java.")[1].replaceAll("\\./|\\.\\\\","").split(".java")[0];
+
+					for(String function : functionNames){
+						logger.info("Instrumentation test: " + testName.replaceAll("/|\\\\", "\\.") + "#" + function);
+						testNames.add(testName.replaceAll("/|\\\\", "\\.") + "#" + function);
+					}
+					
 				}
-				
 			}
 		} catch(IOException ex){
 			logger.info("There are no instrumentation tests");
@@ -157,20 +161,25 @@ public class WorkerHandler {
 
 	private static List<String> getUnitTests(String projectLocation) throws Exception {
 		List<String> testNames = null;
-		
+		File testFolder = null;
+
 		try {
 			testNames = new ArrayList<String>();
-			List<String> unitTests = FileSystemUtils.findFilesWithExtension(new File(projectLocation + "/app/src/test/java/"), "java", true);
-			
-			for(String test: unitTests){
-				List<String> functionNames = getFunctionNames(test);
-				String testName = test.split(".app.src.test.java.")[1].replaceAll("\\./|\\.\\\\","").split(".java")[0];
+			testFolder = new File(projectLocation + "/app/src/test/java/");
 
-				for(String function : functionNames){
-					logger.info("Unit test: " + testName.replaceAll("/|\\\\", "\\.") + "#" + function);
-					testNames.add(testName.replaceAll("/|\\\\", "\\.") + "#" + function);
+			if(testFolder.exists()){
+				List<String> unitTests = FileSystemUtils.findFilesWithExtension(testFolder, "java", true);
+			
+				for(String test: unitTests){
+					List<String> functionNames = getFunctionNames(test);
+					String testName = test.split(".app.src.test.java.")[1].replaceAll("\\./|\\.\\\\","").split(".java")[0];
+
+					for(String function : functionNames){
+						logger.info("Unit test: " + testName.replaceAll("/|\\\\", "\\.") + "#" + function);
+						testNames.add(testName.replaceAll("/|\\\\", "\\.") + "#" + function);
+					}
 				}
-			}
+			}	
 		} catch(IOException ex){
 			logger.info("There are no unit tests");
 		}

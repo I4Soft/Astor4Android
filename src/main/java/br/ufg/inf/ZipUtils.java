@@ -39,35 +39,6 @@ public class ZipUtils {
 
 	}
 
-    public File receiveFolder(InputStream is) throws IOException {
-        BufferedOutputStream dest = null;
-        ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
-        ZipEntry entry;
-        String mainFolder = null;
-
-
-        while((entry = zis.getNextEntry()) != null) {
-            String fileName = entry.getName().split("src/")[1];
-            mainFolder = fileName.split("/")[0];
-
-            int count;
-            byte data[] = new byte[BUFFER];
-            
-            File temp = new File(fileName);
-            temp.getParentFile().mkdirs();
-
-            FileOutputStream fos = new FileOutputStream(fileName);
-            dest = new BufferedOutputStream(fos, BUFFER);
-            while ((count = zis.read(data, 0, BUFFER)) != -1) 
-                dest.write(data, 0, count);
-            
-            dest.flush();
-            dest.close();
-        }
-        zis.close();
-        return new File(mainFolder);
-    }
-
 	private List<String> generateFileList(String source, File node) {
         // add file only
         if (node.isFile()) {

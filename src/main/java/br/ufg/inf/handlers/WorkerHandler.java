@@ -56,7 +56,7 @@ public class WorkerHandler {
 		failingTests = new HashedMap(2);
 		classes = new HashedMap(2);
 		tests = new HashedMap(2);
-		functionPattern = Pattern.compile("\\s*((public|private|protected)\\s+)?(static\\s+)?([a-zA-Z_0-9<>\\[\\]]+)(\\s+)(\\w+)\\s*\\(.*?\\)\\s*(throws\\s*\\w+(\\s*,\\s*\\w+)*)?\\s*\\{?\\s*");
+		functionPattern = Pattern.compile("\\s*(@\\w+\\s*)*\\s*((public|private|protected)\\s+)?(static\\s+)?([a-zA-Z_0-9<>\\[\\]]+)(\\s+)(\\w+)\\s*\\(.*?\\)\\s*(throws\\s*\\w+(\\s*,\\s*\\w+)*)?\\s*\\{?\\s*");
 	}
 
 
@@ -125,7 +125,7 @@ public class WorkerHandler {
 		while((line = br.readLine()) != null){
 			Matcher m = functionPattern.matcher(line);
 			if(m.matches())
-				functionNames.add(m.group(6));
+				functionNames.add(m.group(7));
 		}
 
 		return functionNames;

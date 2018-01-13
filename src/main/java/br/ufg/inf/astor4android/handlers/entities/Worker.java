@@ -1,4 +1,4 @@
-package br.ufg.inf.handlers.entities;
+package br.ufg.inf.astor4android.handlers.entities;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,7 +15,7 @@ import java.util.List;
 
 import fr.inria.astor.core.validation.validators.TestCasesProgramValidationResult;
 import br.ufg.inf.astorworker.faultlocalization.entities.Line;
-import br.ufg.inf.ZipUtils;
+import br.ufg.inf.astor4android.utils.ZipUtils;
 
 
 /**

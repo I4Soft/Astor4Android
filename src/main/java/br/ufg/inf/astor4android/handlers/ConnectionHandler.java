@@ -1,4 +1,4 @@
-package br.ufg.inf.handlers;
+package br.ufg.inf.astor4android.handlers;
 
 import java.net.Socket;
 import java.net.ServerSocket;

@@ -1,4 +1,4 @@
-package br.ufg.inf.executors;
+package br.ufg.inf.astor4android.executors;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

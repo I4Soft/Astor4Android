@@ -1,4 +1,4 @@
-package br.ufg.inf;
+package br.ufg.inf.astor4android.utils;
 
 import java.util.zip.*;
 import java.io.*;

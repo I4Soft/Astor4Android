@@ -7,7 +7,7 @@ import java.util.Collections;
 
 import org.apache.log4j.Logger;
 
-import br.ufg.inf.handlers.WorkerHandler;
+import br.ufg.inf.astor4android.handlers.WorkerHandler;
 import fr.inria.astor.core.faultlocalization.entity.SuspiciousCode;
 import fr.inria.astor.core.faultlocalization.FaultLocalizationStrategy;
 import fr.inria.astor.core.faultlocalization.FaultLocalizationResult;

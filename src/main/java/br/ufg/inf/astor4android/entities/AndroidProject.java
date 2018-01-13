@@ -1,4 +1,4 @@
-package br.ufg.inf.entities;
+package br.ufg.inf.astor4android.entities;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -19,10 +19,10 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
-import br.ufg.inf.executors.CommandExecutorProcess;
-import br.ufg.inf.executors.AndroidToolsExecutorProcess;
+import br.ufg.inf.astor4android.executors.CommandExecutorProcess;
+import br.ufg.inf.astor4android.executors.AndroidToolsExecutorProcess;
 import fr.inria.astor.core.setup.ConfigurationProperties;
-import br.ufg.inf.utils.FileSystemUtils;
+import br.ufg.inf.astor4android.utils.FileSystemUtils;
 
 public class AndroidProject {
 	private static AndroidProject instance = null;

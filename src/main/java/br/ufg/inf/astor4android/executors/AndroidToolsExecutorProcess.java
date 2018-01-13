@@ -1,4 +1,4 @@
-package br.ufg.inf.executors;
+package br.ufg.inf.astor4android.executors;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package br.ufg.inf.main.evolution;
+package br.ufg.inf.astor4android.main.evolution;
 
 import java.io.File;
 import java.io.BufferedReader;
@@ -18,19 +18,18 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.UnrecognizedOptionException;
 
-
-import br.ufg.inf.handlers.WorkerHandler;
-import br.ufg.inf.handlers.ConnectionHandler;
-import br.ufg.inf.executors.CommandExecutorProcess;
-import br.ufg.inf.executors.AndroidToolsExecutorProcess;
 import fr.inria.main.AbstractMain;
 import fr.inria.main.evolution.AstorMain;
 import fr.inria.astor.core.entities.ProgramVariant;
 import fr.inria.astor.core.setup.ConfigurationProperties;
 import fr.inria.astor.core.setup.ProjectRepairFacade;
 import fr.inria.astor.core.setup.ProjectConfiguration;
-import br.ufg.inf.utils.FileSystemUtils;
-import br.ufg.inf.entities.AndroidProject;
+import br.ufg.inf.astor4android.handlers.WorkerHandler;
+import br.ufg.inf.astor4android.handlers.ConnectionHandler;
+import br.ufg.inf.astor4android.executors.CommandExecutorProcess;
+import br.ufg.inf.astor4android.executors.AndroidToolsExecutorProcess;
+import br.ufg.inf.astor4android.utils.FileSystemUtils;
+import br.ufg.inf.astor4android.entities.AndroidProject;
 
 /**
  * The main class of the system.

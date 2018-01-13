@@ -1,4 +1,4 @@
-package br.ufg.inf.handlers;
+package br.ufg.inf.astor4android.handlers;
 
 import java.net.Socket;
 import java.io.File;
@@ -20,13 +20,13 @@ import org.apache.commons.collections4.map.AbstractHashedMap;
 import org.apache.commons.collections4.MapIterator;
 import org.apache.log4j.Logger;
 
-import br.ufg.inf.handlers.entities.Worker;
-import br.ufg.inf.handlers.entities.TestType;
-import br.ufg.inf.astorworker.faultlocalization.entities.Line;
-import fr.inria.astor.core.faultlocalization.entity.SuspiciousCode;
 import fr.inria.astor.core.setup.ConfigurationProperties;
-import br.ufg.inf.utils.FileSystemUtils;
-import br.ufg.inf.entities.AndroidProject;
+import fr.inria.astor.core.faultlocalization.entity.SuspiciousCode;
+import br.ufg.inf.astorworker.faultlocalization.entities.Line;
+import br.ufg.inf.astor4android.handlers.entities.Worker;
+import br.ufg.inf.astor4android.handlers.entities.TestType;
+import br.ufg.inf.astor4android.utils.FileSystemUtils;
+import br.ufg.inf.astor4android.entities.AndroidProject;
 
 
 

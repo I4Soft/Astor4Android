@@ -15,8 +15,8 @@ import org.apache.log4j.Logger;
 
 import com.martiansoftware.jsap.JSAPException;
 
-import br.ufg.inf.handlers.entities.Worker;
-import br.ufg.inf.handlers.WorkerHandler;
+import br.ufg.inf.astor4android.handlers.entities.Worker;
+import br.ufg.inf.astor4android.handlers.WorkerHandler;
 import fr.inria.astor.core.entities.OperatorInstance;
 import fr.inria.astor.core.entities.ModificationPoint;
 import fr.inria.astor.core.entities.ProgramVariant;
@@ -62,8 +62,8 @@ import spoon.reflect.declaration.CtType;
  *		- Modified function processGenerations
  *		- Modified function atEnd
  *		- Added innerclass VariantHandler
- *		- Imported br.ufg.inf.handlers.entities.Worker
- *		- Imported br.ufg.inf.handlers.WorkerHandler
+ *		- Imported br.ufg.inf.astor4android.handlers.entities.Worker
+ *		- Imported br.ufg.inf.astor4android.handlers.WorkerHandler
  *		- Imported fr.inria.astor.core.validation.validators.TestCasesProgramValidationResult
  *		- Imported java.io.File
  */

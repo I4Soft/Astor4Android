@@ -29,7 +29,8 @@ import fr.inria.astor.core.entities.ProgramVariant;
 import fr.inria.astor.core.setup.ConfigurationProperties;
 import fr.inria.astor.core.setup.ProjectRepairFacade;
 import fr.inria.astor.core.setup.ProjectConfiguration;
-import br.inf.ufg.astor4android.utils.FileSystemUtils;
+import br.ufg.inf.utils.FileSystemUtils;
+import br.ufg.inf.entities.AndroidProject;
 
 /**
  * The main class of the system.
@@ -79,7 +80,9 @@ public class Astor4AndroidMain extends AstorMain {
 
 		setupHandlers(projectName, new File(cleanCopy));
 
-		dependencies = findDependencies(projectCopy);
+		AndroidProject.getInstance().setup(new File(projectCopy));
+
+		dependencies = AndroidProject.getInstance().getDependencies();
 
 		log.info("Dependencies: " + dependencies);
 
@@ -87,38 +90,6 @@ public class Astor4AndroidMain extends AstorMain {
 		projectFacade.getProperties().setExperimentName(this.getClass().getSimpleName());
 
 		projectFacade.setupWorkingDirectories(ProgramVariant.DEFAULT_ORIGINAL_VARIANT);
-
-		findMainPackage(projectFacade);
-	}
-
-
-	/**
-	* Opens AndroidManifest.xml and search for the main package of the project.
-	*
-	* @param projectFacade
-	*/
-	private void findMainPackage(ProjectRepairFacade projectFacade) throws Exception {
-		Pattern packagePattern = Pattern.compile("\\s*(package)\\s*(=)\\s*(\'|\")([ .a-zA-Z0-9]+)(\'|\")\\s*(.*?)\\s*");
-
-		BufferedReader br = new BufferedReader(
-				new FileReader(new File(projectFacade.getProperties().getOriginalProjectRootDir() + "/app/src/main/AndroidManifest.xml")));
-		
-		String line = null;
-		String mainPackage = null ;
-
-		while((line = br.readLine()) != null){
-			Matcher packageMatcher = packagePattern.matcher(line);
-
-			if (packageMatcher.matches()) {
-				mainPackage = packageMatcher.group(4);
-				break;
-			}
-		}
-		
-		br.close();
-
-		ConfigurationProperties.properties.setProperty("package", mainPackage);
-		log.info("Main package: "+mainPackage);
 	}
 
 	@Override
@@ -144,7 +115,7 @@ public class Astor4AndroidMain extends AstorMain {
 
 		properties.setOriginalProjectRootDir(FileSystemUtils.fixPath(originalProjectRoot));
 		
-		List<String> src = Arrays.asList(new String[] { FileSystemUtils.fixPath("/app/src/main/java/"), null });
+		List<String> src = Arrays.asList(new String[] { FileSystemUtils.fixPath("/" + AndroidProject.getInstance().getMainFolder() + "/src/main/java/"), null });
 
 		properties.setOriginalDirSrc(src);
 
@@ -260,81 +231,6 @@ public class Astor4AndroidMain extends AstorMain {
 		File tmp = new File(oldWorkingDir);
 		FileUtils.deleteDirectory(tmp);
 		tmp.mkdirs();
-	}
-
-	private void saveDependenciesLocally(String location) throws Exception {
-		String repositoryFormat = "\n\tmaven {\n\t\turl '%s'\n\t}\n";
-
-		List<String> m2repositories = Arrays.asList(new String[] { 
-				ConfigurationProperties.getProperty("androidsdk") + FileSystemUtils.fixPath("/extras/android/m2repository/")
-			  , ConfigurationProperties.getProperty("androidsdk") + FileSystemUtils.fixPath("/extras/google/m2repository/") });
-
-		BufferedWriter out = new BufferedWriter(new FileWriter(new File(location + "/app/build.gradle"), true));
-
-		out.write("\n\nrepositories {");
-		for(String repository : m2repositories)
-			out.write(String.format(repositoryFormat, repository.replace("\\", "\\\\")));
-		out.write("\n\tmavenLocal()\n}\n\n");
-		
-
-		BufferedReader in = new BufferedReader(new FileReader("save.gradle"));
-		String line;
-		while ((line = in.readLine()) != null) 
-            out.write("\n" + line);
-
-        in.close();
-   		out.close();
-
-   		AndroidToolsExecutorProcess.runGradleTask(location, "saveDependencies");
-
-   		extractAAR(location + "/app/localrepo");
-	}
-
-
-	private void extractAAR(String libLocation) throws Exception {
-		List<String> output = FileSystemUtils.findFilesWithExtension(new File(libLocation), "aar", false);
-
-		for(String aar : output){
-			String aarFolder = aar.split(".aar")[0];
-			File aarDirectory = new File(FileSystemUtils.fixPath(libLocation + "/" + aarFolder));
-			FileUtils.moveFileToDirectory(new File(FileSystemUtils.fixPath(libLocation + "/" + aar)), aarDirectory, true);
-			CommandExecutorProcess.execute("jar xf " + aar, FileSystemUtils.fixPath(libLocation + "/" + aarFolder));
-			File jarsDirectory = new File(FileSystemUtils.fixPath(libLocation + "/" + aarFolder + "/" + "jars"));
-			FileUtils.moveFileToDirectory(new File(FileSystemUtils.fixPath(libLocation + "/" + aarFolder + "/classes.jar")), jarsDirectory, true);
-			FileUtils.forceDelete(new File(FileSystemUtils.fixPath( libLocation + "/" + aarFolder + "/" + aar)));
-		}
-	}
-
-
-	/**
-	* Finds the dependencies of the project.
-	* This is done by reading the output of the command "./gradlew build".
-	*
-	* @param location Location of the project
-	*/
-	private String findDependencies(String location) throws Exception {
-		saveDependenciesLocally(location);
-
-		String dependencies = "";
-		List<String> output = FileSystemUtils.findFilesWithExtension(new File(location), "jar", true);
-
-		for(String entry : output)
-			dependencies += entry + System.getProperty("path.separator");
-
-		AndroidToolsExecutorProcess.compileProject(location);
-
-		output = FileSystemUtils.listContentsDirectory(location + "/app/build/intermediates/classes/");
-
-		for(String entry : output){
-			if(entry.equals("debug"))
-				dependencies += FileSystemUtils.fixPath(location + "/app/build/intermediates/classes/debug/") + System.getProperty("path.separator");
-
-			else if(!entry.equals("release")){
-				dependencies += FileSystemUtils.fixPath(location + "/app/build/intermediates/classes/" + entry + "/debug/") + System.getProperty("path.separator");
-			}
-		}
-
-		return dependencies + ConfigurationProperties.getProperty("androidjar");
 	}
 
 

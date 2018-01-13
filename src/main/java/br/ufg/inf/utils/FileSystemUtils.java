@@ -1,4 +1,4 @@
-package br.inf.ufg.astor4android.utils;
+package br.ufg.inf.utils;
 
 import java.io.File;
 import java.nio.file.*;
@@ -66,8 +66,7 @@ public class FileSystemUtils {
    	 	return filesFound;
 	}
 
-    public static List<String> listContentsDirectory(String dir) throws Exception {
-        File directory = new File(fixPath(dir));
+    public static List<String> listContentsDirectory(File directory) throws Exception {
         ArrayList<String> filesFound = new ArrayList<>();
         ArrayList<File> files = new ArrayList<>(Arrays.asList(directory.listFiles()));
 

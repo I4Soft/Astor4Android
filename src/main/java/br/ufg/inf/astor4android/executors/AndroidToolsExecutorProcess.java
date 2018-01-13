@@ -59,7 +59,7 @@ public class AndroidToolsExecutorProcess {
 		return null;
 	}
 
-
-
-
+	public static String getAndroidHome() {
+		return ANDROID_HOME;
+	}
 }

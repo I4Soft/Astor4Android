@@ -153,7 +153,7 @@ public class AndroidProject {
 				}
 			}
 
-			dependencies += ConfigurationProperties.getProperty("androidjar");
+			dependencies += FileSystemUtils.fixPath(AndroidToolsExecutorProcess.getAndroidHome() + "/platforms/android-" + compileVersion + "/android.jar");
 		} catch(FileNotFoundException ex) {
 			logger.error("A file could not be found: " + ex.getMessage());
 			ex.printStackTrace();

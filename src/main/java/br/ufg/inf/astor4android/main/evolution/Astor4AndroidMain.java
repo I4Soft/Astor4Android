@@ -46,8 +46,6 @@ public class Astor4AndroidMain extends AstorMain {
 
 	static {
 		options.addOption("androidsdk", true, "Android SDK location");
-
-		options.addOption("androidjar", true, "android.jar location from Android SDK");
 		
 		options.addOption("port", true, "Port that the workers will connected on");
 
@@ -77,6 +75,7 @@ public class Astor4AndroidMain extends AstorMain {
 		String projectCopy = createProjectCopy(location, "", method, projectName);
 		String cleanCopy = createProjectCopy(location, "clean", method, projectName);
 
+		AndroidToolsExecutorProcess.setup(ConfigurationProperties.getProperty("androidsdk"));
 		setupHandlers(projectName, new File(cleanCopy));
 
 		AndroidProject.getInstance().setup(new File(projectCopy));
@@ -176,10 +175,6 @@ public class Astor4AndroidMain extends AstorMain {
 			ConfigurationProperties.properties.setProperty("port", String.valueOf(DEFAULT_PORT));
 		else
 			ConfigurationProperties.properties.setProperty("port", port);
-		
-
-		if (cmd.hasOption("androidjar"))
-			ConfigurationProperties.properties.setProperty("androidjar", cmd.getOptionValue("androidjar"));	
 
 		if (cmd.hasOption("androidsdk"))
 			ConfigurationProperties.properties.setProperty("androidsdk", cmd.getOptionValue("androidsdk"));	
@@ -251,7 +246,6 @@ public class Astor4AndroidMain extends AstorMain {
 
 	public static void main(String[] args) throws Exception {
 		Astor4AndroidMain m = new Astor4AndroidMain();
-		AndroidToolsExecutorProcess.setup(ConfigurationProperties.getProperty("androidsdk"));
 		m.execute(args);
 		System.exit(0);
 	}

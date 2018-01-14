@@ -13,6 +13,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 
 
 import org.apache.commons.collections4.map.HashedMap;
@@ -231,6 +233,7 @@ public class WorkerHandler {
 		List<String> instrumentationFailing = failingTests.get(TestType.INSTRUMENTATION);
 
 		List<SuspiciousCode> candidates = new ArrayList<>();
+		BufferedWriter out = new BufferedWriter(new FileWriter(ConfigurationProperties.getProperty("projectWorkingDirectory") + "/faultlocalization.log"));
 
 		MapIterator it = faulty.mapIterator();
 		while (it.hasNext()) {
@@ -250,9 +253,12 @@ public class WorkerHandler {
 			}
 
 			logger.info(line.toString());
+			out.write(line.toString());
+			out.newLine();
 
 			candidates.add(new SuspiciousCode(classes.get(line.getClassName()), null, line.getNumber(), line.getSuspiciousValue(), null));
 		}
+		out.close();
 
 		synchronized(workers){
 			for(Worker worker : workers)

@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.Scanner;
 import java.util.InputMismatchException;
 import java.util.Locale;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 
 import org.apache.log4j.Logger;
 
@@ -24,6 +26,7 @@ public class AndroidFaultLocalization implements FaultLocalizationStrategy {
 
 		List<SuspiciousCode> suspicious = WorkerHandler.runFaultLocalization();
 		Collections.sort(suspicious, (o1, o2) -> Double.compare(o2.getSuspiciousValue(), o1.getSuspiciousValue()));
+		saveFaultLocalization(suspicious);
 		List<SuspiciousCode> candidates = new ArrayList<>();
 		double thr = Double.valueOf(ConfigurationProperties.properties.getProperty("flthreshold"));
 		Scanner in = new Scanner(System.in);
@@ -87,6 +90,16 @@ public class AndroidFaultLocalization implements FaultLocalizationStrategy {
 		}
 
 		return new FaultLocalizationResult(candidates.subList(0, max), null);
+	}
+
+
+	private void saveFaultLocalization(List<SuspiciousCode> suspicious) throws Exception {
+		BufferedWriter out = new BufferedWriter(new FileWriter(ConfigurationProperties.getProperty("projectWorkingDirectory") + "/faultlocalization.log"));
+		for(SuspiciousCode sc : suspicious){
+			out.write(sc.toString());
+			out.newLine();
+		}
+		out.close();
 	}
 	
 }

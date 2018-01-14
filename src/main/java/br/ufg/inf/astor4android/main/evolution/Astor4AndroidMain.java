@@ -103,7 +103,7 @@ public class Astor4AndroidMain extends AstorMain {
 		String workingDirForSource = ConfigurationProperties.getProperty("workingDirectory") + key + "/src/";
 		String workingDirForBytecode = ConfigurationProperties.getProperty("workingDirectory") + key + "/bin/";
 		String originalProjectRoot = location + "/";
-		
+		ConfigurationProperties.properties.setProperty("projectWorkingDirectory", ConfigurationProperties.getProperty("workingDirectory") + "/" + key);
 	
 		ProjectConfiguration properties = new ProjectConfiguration();
 		properties.setWorkingDirForSource(FileSystemUtils.fixPath(workingDirForSource));

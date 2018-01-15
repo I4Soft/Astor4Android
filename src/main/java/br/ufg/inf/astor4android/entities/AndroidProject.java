@@ -83,8 +83,9 @@ public class AndroidProject {
 		compileVersion = findCompileVersion();
 		logger.info("Compile version: " + compileVersion);
 
+
 		subprojects = findSubprojects();
-		
+
 		findDependencies();	
 	}
 
@@ -127,6 +128,7 @@ public class AndroidProject {
    		out.close();
 
    		AndroidToolsExecutorProcess.runGradleTask(projectAbsolutePath, "saveDependencies");
+   		checkDataBinding();
 
    		extractAAR(projectAbsolutePath + "/" + mainFolder + "/localrepo");
 	}
@@ -184,6 +186,58 @@ public class AndroidProject {
 		}
 	}
 
+	private void checkDataBinding() throws Exception {
+		logger.info("Checking if the project uses data binding.");
+		Pattern dataBindingLibraryPattern = Pattern.compile("\\s*.---\\s*com\\.android\\.databinding:library:([.0-9]+)\\s*");
+		Pattern dataBindingAdapterPattern = Pattern.compile("\\s*.---\\s*com\\.android\\.databinding:adapters:([.0-9]+)\\s*");
+		String adapterVersion = null;
+		String libraryVersion = null;
+		boolean dataBinding = false;
+
+		ArrayList<BufferedReader> readers = new ArrayList<>();
+		readers.add(new BufferedReader(new FileReader(new File(projectAbsolutePath + "/build.gradle"))));
+		readers.add(new BufferedReader(new FileReader(new File(projectAbsolutePath + "/" + mainFolder + "/build.gradle"))));
+
+		for(BufferedReader br : readers) {
+			String line = null;
+			while((line = br.readLine()) != null && !dataBinding){
+				if(line.toLowerCase().contains("databinding"))
+					dataBinding = true;
+			}
+			br.close();
+		}
+
+		if(dataBinding){
+			logger.info("Project uses data binding. Adding data binding to local repository folder.");
+			List<String> output = AndroidToolsExecutorProcess.runGradleTask(projectAbsolutePath, mainFolder + ":dependencies");
+
+			for(String line : output) {
+				Matcher dataBindingLibraryMatcher = dataBindingLibraryPattern.matcher(line.toLowerCase());
+				if (dataBindingLibraryMatcher.matches()) {
+					libraryVersion = dataBindingLibraryMatcher.group(1);
+					logger.info("Data binding library version: " + libraryVersion);
+					FileUtils.copyFileToDirectory(
+						new File(AndroidToolsExecutorProcess.getAndroidHome() 
+							+ "/extras/android/m2repository/com/android/databinding/library/" + libraryVersion + "/library-" + libraryVersion + ".aar"),
+						new File(projectAbsolutePath + "/" + mainFolder + "/localrepo"));
+					break;
+				}
+			}
+
+			for(String line : output) {
+				Matcher dataBindingAdapterMatcher = dataBindingAdapterPattern.matcher(line.toLowerCase());
+				if (dataBindingAdapterMatcher.matches()) {
+					adapterVersion = dataBindingAdapterMatcher.group(1);
+					logger.info("Data binding adapter version: " + adapterVersion);
+					FileUtils.copyFileToDirectory(
+						new File(AndroidToolsExecutorProcess.getAndroidHome() 
+							+ "/extras/android/m2repository/com/android/databinding/adapters/" + adapterVersion + "/adapters-" + adapterVersion + ".aar"),
+						new File(projectAbsolutePath + "/" + mainFolder + "/localrepo"));
+					break;
+				}
+			}
+		}
+	}
 
 
 	private String findBuildVersion() throws Exception {
@@ -198,7 +252,6 @@ public class AndroidProject {
 		for(BufferedReader br : readers) {
 			while((line = br.readLine()) != null){
 				Matcher buildVersionMatcher = buildVersionPattern.matcher(line.toLowerCase());
-
 				if (buildVersionMatcher.matches()) {
 					buildToolsVersion = buildVersionMatcher.group(3);
 					break;

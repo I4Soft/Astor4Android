@@ -15,6 +15,10 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 
 
 import org.apache.commons.collections4.map.HashedMap;
@@ -192,13 +196,31 @@ public class WorkerHandler {
 
 	public static List<SuspiciousCode> runFaultLocalization() throws Exception {
 		//Getting name of all classes
-
 		List<String> output = FileSystemUtils.findFilesWithExtension(new File(project.getAbsolutePath() + "/" + AndroidProject.getInstance().getMainFolder() + "/src/main/java/"), "java", true);
 		for(String clss : output){
 			clss = clss.split("." + AndroidProject.getInstance().getMainFolder() + ".src.main.java.")[1].replaceAll("\\./|\\.\\\\", "").split(".java")[0].replaceAll("/|\\\\", "\\.");
 			String[] tokens = clss.split("\\.");
 			classes.put(tokens[tokens.length-1], clss);
 			logger.info("["+tokens[tokens.length-1]+" , "+clss+"]");
+		}
+
+		if(ConfigurationProperties.getProperty("loadflsave") != null) {
+			BufferedWriter out = new BufferedWriter(new FileWriter(ConfigurationProperties.getProperty("projectWorkingDirectory") + "/faultlocalization.log"));
+			FileInputStream fis = new FileInputStream(ConfigurationProperties.getProperty("loadflsave"));
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			List<Line> lines = (List<Line>) ois.readObject();
+			ois.close();
+
+			List<SuspiciousCode> candidates = new ArrayList<>();
+			for(Line line : lines) {
+				candidates.add(new SuspiciousCode(classes.get(line.getClassName()), null, line.getNumber(), line.getSuspiciousValue(), null));
+				logger.info(line.toString());
+				out.write(line.toString());
+				out.newLine();
+			}
+			out.close();
+			
+			return candidates;
 		}
 
 		tests.put(TestType.UNIT, getUnitTests(project.getAbsolutePath()));
@@ -232,6 +254,8 @@ public class WorkerHandler {
 		List<String> unitFailing = failingTests.get(TestType.UNIT);
 		List<String> instrumentationFailing = failingTests.get(TestType.INSTRUMENTATION);
 
+		List<Line> linesToSave = new ArrayList<>();
+
 		List<SuspiciousCode> candidates = new ArrayList<>();
 		BufferedWriter out = new BufferedWriter(new FileWriter(ConfigurationProperties.getProperty("projectWorkingDirectory") + "/faultlocalization.log"));
 
@@ -256,6 +280,7 @@ public class WorkerHandler {
 			out.write(line.toString());
 			out.newLine();
 
+			linesToSave.add(line);
 			candidates.add(new SuspiciousCode(classes.get(line.getClassName()), null, line.getNumber(), line.getSuspiciousValue(), null));
 		}
 		out.close();
@@ -264,6 +289,12 @@ public class WorkerHandler {
 			for(Worker worker : workers)
 				worker.finishFaultLocalization();
 		}
+
+		//Creating the fault localization save file
+		FileOutputStream fos = new FileOutputStream(ConfigurationProperties.getProperty("projectWorkingDirectory") + "/" + projectName + ".flsave");
+		ObjectOutputStream oos = new ObjectOutputStream(fos);
+		oos.writeObject(linesToSave);
+		oos.close();
 
  		return candidates;
 	}

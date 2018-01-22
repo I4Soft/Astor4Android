@@ -54,6 +54,9 @@ public class Astor4AndroidMain extends AstorMain {
 
 		options.addOption("instrumentationfailing", true,
 				"failing instrumentation test cases, separated by Path separator char (: in linux/mac  and ; in windows)");
+
+		options.addOption("loadflsave", true, 
+				"File containing the results of a previously executed fault localization for the same project");
 	}
 	
 
@@ -178,6 +181,9 @@ public class Astor4AndroidMain extends AstorMain {
 
 		if (cmd.hasOption("androidsdk"))
 			ConfigurationProperties.properties.setProperty("androidsdk", cmd.getOptionValue("androidsdk"));	
+
+		if (cmd.hasOption("loadflsave"))
+			ConfigurationProperties.properties.setProperty("loadflsave", cmd.getOptionValue("loadflsave"));	
 
 		if (cmd.hasOption("package"))
 			ConfigurationProperties.properties.setProperty("package", cmd.getOptionValue("package"));

@@ -11,8 +11,10 @@ public class Line implements Serializable {
 	private String className;
 	private List<String> tests; //Tests that executed this line
 	private int failingExecuted;
-	private int passingExecuted;
 	private int failingNotExecuted;
+	private int passingExecuted;
+	private int totalPassing;
+	private double suspiciousValue;
 
 	public Line(int number, String className, String test, boolean passing){
 		this.number = number;
@@ -20,6 +22,7 @@ public class Line implements Serializable {
 		this.failingExecuted = 0;
 		this.failingNotExecuted = 0;
 		this.passingExecuted = 0;
+		this.totalPassing = 0;
 		tests = new ArrayList<String>();
 		addTest(test, passing);
 	}
@@ -51,16 +54,44 @@ public class Line implements Serializable {
 		tests.add(test);
 	}
 
-	public double getSuspiciousValue(){
-		return failingExecuted/(Math.sqrt((failingExecuted + failingNotExecuted) * (failingExecuted + passingExecuted)));
-	}
-
 	@Override
 	public String toString(){
-		return "Line = [number: "+number+", className: "+className+", hit by: "+String.join(":",tests)+", fth: "+getSuspiciousValue()+"]";
+		return "Line = [number: " + number + ", className: " + className + ", hit by: " + String.join(":", tests) + ", fth: " + suspiciousValue + "]";
 	}
 
 	public void incrementFailingNotExecuted(){
 		failingNotExecuted++;
+	}	
+
+	public void setSuspiciousValue(double value){
+		suspiciousValue = value;
+	}
+
+	public void setTotalPassing(int totalPassing) {
+		this.totalPassing = totalPassing;
+	}
+
+	public double getSuspiciousValue(){
+		return suspiciousValue;
+	}
+
+	public int getFailingExecuted() {
+		return failingExecuted;
+	}
+
+	public int getFailingNotExecuted() {
+		return failingNotExecuted;
+	}	
+
+	public int getPassingExecuted() {
+		return passingExecuted;
+	}
+
+	public int getTotalFailing() {
+		return failingExecuted + failingNotExecuted;
+	}
+
+	public int getTotalPassing() {
+		return totalPassing;
 	}
 }

@@ -30,6 +30,7 @@ import br.ufg.inf.astor4android.executors.CommandExecutorProcess;
 import br.ufg.inf.astor4android.executors.AndroidToolsExecutorProcess;
 import br.ufg.inf.astor4android.utils.FileSystemUtils;
 import br.ufg.inf.astor4android.entities.AndroidProject;
+import br.ufg.inf.astor4android.faultlocalization.FaultLocalizationFormulaDelegate;
 
 /**
  * The main class of the system.
@@ -57,6 +58,8 @@ public class Astor4AndroidMain extends AstorMain {
 
 		options.addOption("loadflsave", true, 
 				"File containing the results of a previously executed fault localization for the same project");
+
+		options.addOption("flmode", true, "(Optional) Fault localization mode (ochiai, op2, tarantula, dstar or barinel). Default: ochiai");
 	}
 	
 
@@ -187,6 +190,14 @@ public class Astor4AndroidMain extends AstorMain {
 
 		if (cmd.hasOption("package"))
 			ConfigurationProperties.properties.setProperty("package", cmd.getOptionValue("package"));
+
+		if (cmd.hasOption("flmode")) {
+			if(FaultLocalizationFormulaDelegate.setFormulaType(cmd.getOptionValue("flmode")) == false) {
+				help();
+				return false;
+			}
+		}
+		else FaultLocalizationFormulaDelegate.setFormulaType("ochiai");
 
 		return true;
 	}

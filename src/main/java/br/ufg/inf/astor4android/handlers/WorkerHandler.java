@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +35,7 @@ import br.ufg.inf.astor4android.handlers.entities.Worker;
 import br.ufg.inf.astor4android.handlers.entities.TestType;
 import br.ufg.inf.astor4android.utils.FileSystemUtils;
 import br.ufg.inf.astor4android.entities.AndroidProject;
+import br.ufg.inf.astor4android.faultlocalization.FaultLocalizationFormulaDelegate;
 
 
 
@@ -56,6 +59,7 @@ public class WorkerHandler {
 	private static AbstractHashedMap<String, String> classes;
 	private static Logger logger = Logger.getLogger(WorkerHandler.class.getName());
 	private static Pattern functionPattern; 
+	private static Set<String> testSet;
 
 	static {
 		workers = new LinkedBlockingQueue<Worker>(); 
@@ -63,6 +67,7 @@ public class WorkerHandler {
 		failingTests = new HashedMap(2);
 		classes = new HashedMap(2);
 		tests = new HashedMap(2);
+		testSet = new HashSet<String>();
 		functionPattern = Pattern.compile("\\s*(@\\w+\\s*)*\\s*((public|private|protected)\\s+)?(static\\s+)?([a-zA-Z_0-9<>\\[\\]]+)(\\s+)(\\w+)\\s*\\(.*?\\)\\s*(throws\\s*\\w+(\\s*,\\s*\\w+)*)?\\s*\\{?\\s*");
 	}
 
@@ -213,6 +218,7 @@ public class WorkerHandler {
 
 			List<SuspiciousCode> candidates = new ArrayList<>();
 			for(Line line : lines) {
+				line.setSuspiciousValue(FaultLocalizationFormulaDelegate.applyFormula(line));
 				candidates.add(new SuspiciousCode(classes.get(line.getClassName()), null, line.getNumber(), line.getSuspiciousValue(), null));
 				logger.info(line.toString());
 				out.write(line.toString());
@@ -259,7 +265,21 @@ public class WorkerHandler {
 		List<SuspiciousCode> candidates = new ArrayList<>();
 		BufferedWriter out = new BufferedWriter(new FileWriter(ConfigurationProperties.getProperty("projectWorkingDirectory") + "/faultlocalization.log"));
 
+
+		//Creating set with all the positive case tests
 		MapIterator it = faulty.mapIterator();
+		while (it.hasNext()) {
+			it.next();
+			Line line = (Line) it.getValue();
+			List<String> testList = line.getTestList();
+
+			for(String test : testList) {
+				if(!(instrumentationFailing != null && instrumentationFailing.contains(test)) && !(unitFailing != null && unitFailing.contains(test)))
+					testSet.add(test);
+			}
+		}
+
+		it = faulty.mapIterator();
 		while (it.hasNext()) {
 			it.next();
 			Line line = (Line) it.getValue();
@@ -276,6 +296,8 @@ public class WorkerHandler {
 						line.incrementFailingNotExecuted();
 			}
 
+			line.setTotalPassing(testSet.size());
+			line.setSuspiciousValue(FaultLocalizationFormulaDelegate.applyFormula(line));
 			logger.info(line.toString());
 			out.write(line.toString());
 			out.newLine();

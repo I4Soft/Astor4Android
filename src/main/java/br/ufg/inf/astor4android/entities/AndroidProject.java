@@ -15,9 +15,12 @@ import java.util.regex.Matcher;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.util.Set;
+import java.util.HashSet;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.collections4.map.AbstractHashedMap;
 
 import br.ufg.inf.astor4android.executors.CommandExecutorProcess;
 import br.ufg.inf.astor4android.executors.AndroidToolsExecutorProcess;
@@ -39,16 +42,23 @@ public class AndroidProject {
 	private String buildVersion;
 	private String compileVersion;
 	private List<String> failingInstrumentationTestCases;
+	private List<String> instrumentationTestCases;
 	private List<String> failingUnitTestCases;
+	private List<String> unitTestCases;
 	private List<String> subprojects;
 	private boolean unitRegressionTestCasesExist;
 	private boolean instrumentationRegressionTestCasesExist;
+	private AbstractHashedMap<String, String> classes;
+	private Set<String> passingTestCases;
 	private Logger logger = Logger.getLogger(AndroidProject.class);
 
 	private Pattern unitTaskPattern = Pattern.compile("\\s*(test)([a-zA-Z0-9]+)(unittest)\\s-\\s(.*?)\\s*");
 	private Pattern instrumentationTaskPattern = Pattern.compile("\\s*(connected)(androidtest[a-zA-Z0-9]+|[a-zA-Z0-9]+androidtest)\\s-\\s(.*?)\\s*");
+	private Pattern functionPattern = Pattern.compile("\\s*(@\\w+\\s*)*\\s*((public|private|protected)\\s+)?(static\\s+)?([a-zA-Z_0-9<>\\[\\]]+)(\\s+)(\\w+)\\s*\\(.*?\\)\\s*(throws\\s*\\w+(\\s*,\\s*\\w+)*)?\\s*\\{?\\s*");
 
-	private AndroidProject() {}
+	private AndroidProject() {
+		passingTestCases = new HashSet<>();
+	}
 
 	public static AndroidProject getInstance() {
 		if(instance == null)
@@ -83,6 +93,9 @@ public class AndroidProject {
 		compileVersion = findCompileVersion();
 		logger.info("Compile version: " + compileVersion);
 
+		classes = findClasses();
+		instrumentationTestCases = findInstrumentationTestCases();
+		unitTestCases = findUnitTestCases();
 
 		subprojects = findSubprojects();
 
@@ -133,6 +146,94 @@ public class AndroidProject {
    		extractAAR(projectAbsolutePath + "/" + mainFolder + "/localrepo");
 	}
 
+	private List<String> findFunctionNames(String source) throws Exception {
+		BufferedReader br = new BufferedReader(new FileReader(source));
+		ArrayList<String> functionNames = new ArrayList<String>();
+		String line;
+
+		while((line = br.readLine()) != null){
+			Matcher m = functionPattern.matcher(line);
+			if(m.matches())
+				functionNames.add(m.group(7));
+		}
+
+		return functionNames;
+	} 
+
+	private List<String> findInstrumentationTestCases() throws Exception {
+		List<String> testCases = null;
+		File testFolder = null;
+		try {
+			testCases = new ArrayList<String>();
+			testFolder = new File(projectAbsolutePath + "/" + mainFolder + "/src/androidTest/java/");
+
+			if(testFolder.exists()){
+				List<String> instrumentationTests = FileSystemUtils.findFilesWithExtension(testFolder, "java", true);
+			
+				for(String testFile : instrumentationTests){
+					List<String> functions = findFunctionNames(testFile);
+					String test = testFile.split("." + mainFolder + ".src.androidTest.java.")[1].replaceAll("\\./|\\.\\\\","").split(".java")[0];
+					test = test.replaceAll("/|\\\\", "\\.");
+
+					for(String function : functions){
+						String testCase = test + "#" + function; 
+						logger.info("Possible instrumentation test case: " + testCase);
+						testCases.add(testCase);
+					}
+				}
+			}
+		} catch(IOException ex){
+			logger.info("There are no instrumentation tests");
+		}
+		
+		return testCases;
+	}	
+
+	private List<String> findUnitTestCases() throws Exception {
+		List<String> testCases = null;
+		File testFolder = null;
+
+		try {
+			testCases = new ArrayList<String>();
+			testFolder = new File(projectAbsolutePath + "/" + mainFolder + "/src/test/java/");
+
+			if(testFolder.exists()){
+				List<String> unitTests = FileSystemUtils.findFilesWithExtension(testFolder, "java", true);
+			
+				for(String testFile : unitTests){
+					List<String> functionNames = findFunctionNames(testFile);
+					String test = testFile.split("." + AndroidProject.getInstance().getMainFolder() + ".src.test.java.")[1].replaceAll("\\./|\\.\\\\","").split(".java")[0];
+					test = test.replaceAll("/|\\\\", "\\.");
+
+					for(String function : functionNames){
+						String testCase = test + "#" + function;
+						logger.info("Possible unit test case: " + testCase);
+						testCases.add(testCase);
+					}
+				}
+			}	
+		} catch(IOException ex){
+			logger.info("There are no unit tests");
+		}
+		
+		return testCases;
+	}
+
+	private AbstractHashedMap<String, String> findClasses() throws Exception {
+		AbstractHashedMap<String, String> classes = new HashedMap(2);
+		List<String> sourceFiles = FileSystemUtils.findFilesWithExtension(new File(projectAbsolutePath + "/" + mainFolder + "/src/main/java/"), "java", true);
+		
+		logger.info("Classes:");
+		for(String file : sourceFiles){
+			String fullyQualifiedClassName = file.split("." + mainFolder + ".src.main.java.")[1].replaceAll("\\./|\\.\\\\", "").split(".java")[0].replaceAll("/|\\\\", "\\.");
+			String[] tokens = fullyQualifiedClassName.split("\\.");
+			String className = tokens[tokens.length-1];
+			classes.put(className, fullyQualifiedClassName);
+			logger.info("[" + className + " , " + fullyQualifiedClassName + "]");
+		}
+		return classes;
+	}
+
 	private List<String> findSubprojects() throws Exception {
 		BufferedReader br = new BufferedReader(new FileReader(new File(projectAbsolutePath + "/settings.gradle")));
 		Pattern p = Pattern.compile("include\\s*\\'([_:a-zA-Z0-9-]+)\\'\\s*\\,?+(.*?)\\s*");
@@ -179,6 +280,7 @@ public class AndroidProject {
 			}
 
 			dependencies += FileSystemUtils.fixPath(AndroidToolsExecutorProcess.getAndroidHome() + "/platforms/android-" + compileVersion + "/android.jar");
+			logger.debug("Dependencies found: " + dependencies);
 		} catch(FileNotFoundException ex) {
 			logger.error("A file could not be found: " + ex.getMessage());
 			ex.printStackTrace();
@@ -187,7 +289,7 @@ public class AndroidProject {
 	}
 
 	private void checkDataBinding() throws Exception {
-		logger.info("Checking if the project uses data binding.");
+		logger.info("Checking if the project uses data binding");
 		Pattern dataBindingLibraryPattern = Pattern.compile("\\s*.---\\s*com\\.android\\.databinding:library:([.0-9]+)\\s*");
 		Pattern dataBindingAdapterPattern = Pattern.compile("\\s*.---\\s*com\\.android\\.databinding:adapters:([.0-9]+)\\s*");
 		String adapterVersion = null;
@@ -374,6 +476,22 @@ public class AndroidProject {
 		return !unitTests.isEmpty();
 	}
 
+	public void updatePassingTestCases(List<String> testCases) {
+		for(String test : testCases) {
+			if(!(failingInstrumentationTestCases != null && failingInstrumentationTestCases.contains(test)) 
+					&& !(failingUnitTestCases != null && failingUnitTestCases.contains(test)))
+				passingTestCases.add(test);
+		}
+	}
+
+	public boolean isFailingTestCase(String test) {
+		return (failingInstrumentationTestCases != null && failingInstrumentationTestCases.contains(test)) 
+				|| (failingUnitTestCases != null && failingUnitTestCases.contains(test));
+	} 
+
+	public int getNumberOfPassingTestCases() {
+		return passingTestCases.size();
+	}
 
 	public void setFailingInstrumentationTestCases(String tests) {
 		failingInstrumentationTestCases = Arrays.asList(tests.split(":"));
@@ -391,12 +509,28 @@ public class AndroidProject {
 		return dependencies;
 	}
 
+	public boolean failingUnitTestCasesExists() {
+		return (failingUnitTestCases != null && !failingUnitTestCases.isEmpty());
+	}	
+
+	public boolean failingInstrumentationTestCasesExists() {
+		return (failingInstrumentationTestCases != null && !failingInstrumentationTestCases.isEmpty());
+	}
+
 	public List<String> getFailingUnitTestCases(){
 		return failingUnitTestCases;
 	}
 
 	public List<String> getFailingInstrumentationTestCases(){
 		return failingInstrumentationTestCases;
+	}	
+
+	public List<String> getUnitTestCases(){
+		return unitTestCases;
+	}
+
+	public List<String> getInstrumentationTestCases(){
+		return instrumentationTestCases;
 	}
 
 	public String getLocation() {
@@ -421,6 +555,10 @@ public class AndroidProject {
 
 	public String getBuildVersion() {
 		return buildVersion;
+	}
+
+	public String getFullyQualifiedClassName(String className) {
+		return classes.get(className);
 	}
 
 	public boolean unitRegressionTestCasesExist(){

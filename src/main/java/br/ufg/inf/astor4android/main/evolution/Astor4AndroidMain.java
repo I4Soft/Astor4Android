@@ -24,8 +24,9 @@ import fr.inria.astor.core.entities.ProgramVariant;
 import fr.inria.astor.core.setup.ConfigurationProperties;
 import fr.inria.astor.core.setup.ProjectRepairFacade;
 import fr.inria.astor.core.setup.ProjectConfiguration;
-import br.ufg.inf.astor4android.handlers.WorkerHandler;
-import br.ufg.inf.astor4android.handlers.ConnectionHandler;
+import br.ufg.inf.astor4android.worker.WorkerCache;
+import br.ufg.inf.astor4android.worker.WorkerFacade;
+import br.ufg.inf.astor4android.worker.connection.ConnectionReceiver;
 import br.ufg.inf.astor4android.executors.CommandExecutorProcess;
 import br.ufg.inf.astor4android.executors.AndroidToolsExecutorProcess;
 import br.ufg.inf.astor4android.utils.FileSystemUtils;
@@ -40,7 +41,7 @@ import br.ufg.inf.astor4android.faultlocalization.FaultLocalizationFormulaDelega
  */
 public class Astor4AndroidMain extends AstorMain {
 
-	protected Logger log = Logger.getLogger(Astor4AndroidMain.class.getName());
+	protected Logger logger = Logger.getLogger(Astor4AndroidMain.class.getName());
 	private final int DEFAULT_PORT = 6665;
 
 	CommandLineParser parser = new BasicParser();
@@ -48,7 +49,7 @@ public class Astor4AndroidMain extends AstorMain {
 	static {
 		options.addOption("androidsdk", true, "Android SDK location");
 		
-		options.addOption("port", true, "Port that the workers will connected on");
+		options.addOption("port", true, "Port that the workers will connected on. Default: 6665");
 
 		options.addOption("unitfailing", true,
 				"failing unit test cases, separated by Path separator char (: in linux/mac  and ; in windows)");
@@ -77,18 +78,15 @@ public class Astor4AndroidMain extends AstorMain {
 		createWorkingDirectory(projectName, method);
 
 		//Creating clean copy of the project for the workers
-		log.info("Project name: " + projectName);
 		String projectCopy = createProjectCopy(location, "", method, projectName);
 		String cleanCopy = createProjectCopy(location, "clean", method, projectName);
 
 		AndroidToolsExecutorProcess.setup(ConfigurationProperties.getProperty("androidsdk"));
-		setupHandlers(projectName, new File(cleanCopy));
+		setupWorkerManagement(projectName, new File(cleanCopy));
 
 		AndroidProject.getInstance().setup(new File(projectCopy));
 
 		dependencies = AndroidProject.getInstance().getDependencies();
-
-		log.info("Dependencies: " + dependencies);
 
 		projectFacade = getProject(projectCopy, projectName, method, null, dependencies, true);
 		projectFacade.getProperties().setExperimentName(this.getClass().getSimpleName());
@@ -169,11 +167,11 @@ public class Astor4AndroidMain extends AstorMain {
 
 		if(unitFailing != null) {
 			ConfigurationProperties.properties.setProperty("unitfailing", unitFailing);
-			WorkerHandler.setUnitFailing(unitFailing);
+			AndroidProject.getInstance().setFailingUnitTestCases(unitFailing);
 		}
 		if(instrumentationFailing != null) {
 			ConfigurationProperties.properties.setProperty("instrumentationfailing", instrumentationFailing);
-			WorkerHandler.setInstrumentationFailing(instrumentationFailing);
+			AndroidProject.getInstance().setFailingInstrumentationTestCases(instrumentationFailing);
 		}
 		
 		ConfigurationProperties.properties.setProperty("location", location);
@@ -246,19 +244,19 @@ public class Astor4AndroidMain extends AstorMain {
 
 
 	/**
-	* Sets up WorkerHandler and ConnectionHandler.
-	* WorkerHandler will start sending the project to all connected instances of AstorWorker.
-	* ConnectionHandler will start receiving new connections from instances of AstorWorker.
+	* Sets up WorkerCache and ConnectionReceiver.
+	* WorkerCache will start sending the project to all connected instances of AstorWorker.
+	* ConnectionReceiver will start receiving new connections from instances of AstorWorker.
 	*
 	* @param projectName Name of the folder of the project
 	* @param cleanProject File object referring the clean copy of the project 
-	* @see WorkerHander#setProject(String, File)
-	* @see ConnectionHandler#Constructor(int)
+	* @see WorkerCache#setProject(String, File)
+	* @see ConnectionReceiver#Constructor(int)
 	*/
-	private void setupHandlers(String projectName, File cleanProject) throws Exception {
-		WorkerHandler.setProject(projectName, cleanProject);
-		ConnectionHandler connectionHandler = new ConnectionHandler(Integer.parseInt(ConfigurationProperties.getProperty("port")));
-		connectionHandler.start();
+	private void setupWorkerManagement(String projectName, File cleanProject) throws Exception {
+		WorkerCache.setProject(projectName, cleanProject);
+		Thread connectionReceiver = new Thread(new ConnectionReceiver(Integer.parseInt(ConfigurationProperties.getProperty("port"))));
+		connectionReceiver.start();
 	}
 
 	public static void main(String[] args) throws Exception {

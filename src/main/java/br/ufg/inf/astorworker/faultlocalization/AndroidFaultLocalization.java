@@ -10,7 +10,7 @@ import java.util.Locale;
 
 import org.apache.log4j.Logger;
 
-import br.ufg.inf.astor4android.handlers.WorkerHandler;
+import br.ufg.inf.astor4android.faultlocalization.FaultLocalizationManager;
 import fr.inria.astor.core.faultlocalization.entity.SuspiciousCode;
 import fr.inria.astor.core.faultlocalization.FaultLocalizationStrategy;
 import fr.inria.astor.core.faultlocalization.FaultLocalizationResult;
@@ -22,7 +22,7 @@ public class AndroidFaultLocalization implements FaultLocalizationStrategy {
 	public FaultLocalizationResult searchSuspicious(String location, List<String> testsToExecute,
 			List<String> toInstrument, Set<String> cp, String srcFolder) throws Exception {
 
-		List<SuspiciousCode> suspicious = WorkerHandler.runFaultLocalization();
+		List<SuspiciousCode> suspicious = FaultLocalizationManager.runFaultLocalization();
 		Collections.sort(suspicious, (o1, o2) -> Double.compare(o2.getSuspiciousValue(), o1.getSuspiciousValue()));
 		List<SuspiciousCode> candidates = new ArrayList<>();
 		double thr = Double.valueOf(ConfigurationProperties.properties.getProperty("flthreshold"));

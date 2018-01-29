@@ -1,4 +1,4 @@
-package br.ufg.inf.astor4android.handlers.entities;
+package br.ufg.inf.astor4android.worker.entities;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,9 +13,12 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 
-import fr.inria.astor.core.validation.validators.TestCasesProgramValidationResult;
-import br.ufg.inf.astorworker.faultlocalization.entities.Line;
+import org.apache.log4j.Logger;
+
 import br.ufg.inf.astor4android.utils.ZipUtils;
+import br.ufg.inf.astor4android.worker.enums.TestType;
+import br.ufg.inf.astorworker.faultlocalization.entities.Line;
+import fr.inria.astor.core.validation.validators.TestCasesProgramValidationResult;
 
 
 /**
@@ -26,13 +29,14 @@ import br.ufg.inf.astor4android.utils.ZipUtils;
 * @author Kayque de Sousa Teixeira, kayque23@gmail.com
 *
 */
-public class Worker extends Thread {
+public class Worker {
 	private String IP;
 	private int port;
 	private Socket dataSocket;
 	private Socket infoSocket;
 	private ZipUtils zipUtils;
 	private PrintWriter printWriter;
+	private static Logger logger = Logger.getLogger(Worker.class.getName());
 
 
 	public Worker() throws IOException {
@@ -67,7 +71,7 @@ public class Worker extends Thread {
 	* @see #sendFolder(File)
 	*/
 	public void sendProject(File project) throws IOException, FileNotFoundException, InterruptedException {
-		printWriter.println("SEND_PROJECT");
+		sendMessage("SEND_PROJECT");
 		sendFolder(project);
 	}
 
@@ -102,7 +106,7 @@ public class Worker extends Thread {
 	* @see #getProgramValidationResult()
 	*/
 	public TestCasesProgramValidationResult processVariant(File variant) throws IOException, ClassNotFoundException, InterruptedException {
-		printWriter.println("PROCESS_VARIANT");
+		sendMessage("PROCESS_VARIANT");
 		sendFolder(variant);
 		return getProgramValidationResult();
 	}
@@ -135,8 +139,8 @@ public class Worker extends Thread {
 	* @param projectName Name of the folder of the project
 	*/
 	public void sendProjectName(String projectName) throws IOException, InterruptedException {
-		printWriter.println("SEND_PROJECT_NAME");
-		printWriter.println(projectName);
+		sendMessage("SEND_PROJECT_NAME");
+		sendMessage(projectName);
 	}
 
 
@@ -144,7 +148,7 @@ public class Worker extends Thread {
 	* Tell the AstorWorker that the repair has finished.
 	*/
 	public void finish() throws IOException {
-		printWriter.println("END");
+		sendMessage("END");
 	}
 
 	@Override
@@ -153,10 +157,11 @@ public class Worker extends Thread {
 	}
 
 	/**
-	* Tell the AstorWorker that the fault localization process shall be terminated.
+	* Sends a message to the AstorWorker.
 	*/
-	public void finishFaultLocalization() throws IOException {
-		printWriter.println("END_FAULT_LOCALIZATION");
+	public void sendMessage(String message) {
+		printWriter.println(message);
+		logger.debug("Message sent to " + toString() + ": \"" + message + "\"");
 	}
 
 
@@ -173,8 +178,8 @@ public class Worker extends Thread {
 	* @see Line
 	*/
 	public List<Line> searchSuspicious(String test, TestType type, Boolean passing) throws IOException, InterruptedException, ClassNotFoundException {
-		printWriter.println("FAULT_LOCALIZATION");
-		printWriter.println(type.name() + ":" + test + ":" + passing.toString());
+		sendMessage("FAULT_LOCALIZATION");
+		sendMessage(type.name() + ":" + test + ":" + passing.toString());
 
 		dataSocket = null;
 		while(true){
@@ -193,8 +198,8 @@ public class Worker extends Thread {
 
 	public void sendFailingTests(TestType type, String tests) throws IOException {
 		if(tests == null || tests == "") return;
-		printWriter.println("SEND_FAILING_TEST");
-		printWriter.println(type.name() + "@" + tests);
+		sendMessage("SEND_FAILING_TEST");
+		sendMessage(type.name() + "@" + tests);
 	}
 	
 }

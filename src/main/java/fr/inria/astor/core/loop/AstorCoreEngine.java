@@ -15,8 +15,8 @@ import org.apache.log4j.Logger;
 
 import com.martiansoftware.jsap.JSAPException;
 
-import br.ufg.inf.astor4android.handlers.entities.Worker;
-import br.ufg.inf.astor4android.handlers.WorkerHandler;
+import br.ufg.inf.astor4android.worker.WorkerFacade;
+import br.ufg.inf.astor4android.worker.WorkerCache;
 import fr.inria.astor.core.entities.OperatorInstance;
 import fr.inria.astor.core.entities.ModificationPoint;
 import fr.inria.astor.core.entities.ProgramVariant;
@@ -62,8 +62,8 @@ import spoon.reflect.declaration.CtType;
  *		- Modified function processGenerations
  *		- Modified function atEnd
  *		- Added innerclass VariantHandler
- *		- Imported br.ufg.inf.astor4android.handlers.entities.Worker
- *		- Imported br.ufg.inf.astor4android.handlers.WorkerHandler
+ *		- Imported br.ufg.inf.astor4android.worker.WorkerFacade
+ *		- Imported br.ufg.inf.astor4android.worker.WorkerCache
  *		- Imported fr.inria.astor.core.validation.validators.TestCasesProgramValidationResult
  *		- Imported java.io.File
  */
@@ -165,7 +165,7 @@ public abstract class AstorCoreEngine implements AstorExtensionPoint {
 		this.sortPatches();
 		this.showResults();
 
-		WorkerHandler.finishAllWorkers();
+		WorkerCache.finishAllWorkers();
 	}
 
 	/**
@@ -337,15 +337,10 @@ public abstract class AstorCoreEngine implements AstorExtensionPoint {
 			}
 
 			try {
-				Worker worker = WorkerHandler.getWorker();
-				log.info(Thread.currentThread().getName()+" got the worker "+worker.toString());
-
+				WorkerFacade workerFacade = new WorkerFacade();
 				File variantFolder = new File(srcOutput);
-				validationResult = worker.processVariant(variantFolder);
+				validationResult = workerFacade.processVariant(variantFolder);
 				childCompiles = validationResult.isCompilationSuccess();
-
-				WorkerHandler.putWorker(worker);
-				log.info(Thread.currentThread().getName()+" returned the worker "+worker.toString()+" to the queue");
 
 				temporalInstance = newVariant;
 

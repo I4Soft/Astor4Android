@@ -7,8 +7,7 @@ import java.util.stream.Collectors;
 
 import com.martiansoftware.jsap.JSAPException;
 
-import br.ufg.inf.astor4android.handlers.entities.Worker;
-import br.ufg.inf.astor4android.handlers.WorkerHandler;
+import br.ufg.inf.astor4android.worker.WorkerFacade;
 import fr.inria.astor.core.validation.validators.TestCasesProgramValidationResult;
 import fr.inria.astor.core.entities.Ingredient;
 import fr.inria.astor.core.entities.ModificationPoint;
@@ -51,8 +50,7 @@ import spoon.reflect.factory.Factory;
  * Difference from the original JGenProg:
  *		- Modified function createInitialPopulation
  *		- Added function validateInstance
- *		- Imported br.ufg.inf.astor4android.handlers.entities.Worker
- *		- Imported br.ufg.inf.astor4android.handlers.WorkerHandler
+ *		- Imported br.ufg.inf.astor4android.worker.WorkerFacade
  *		- Imported fr.inria.astor.core.validation.validators.TestCasesProgramValidationResult
  *		- Imported java.io.File
  */
@@ -117,18 +115,12 @@ public class JGenProg extends AstorCoreEngine {
 		String srcOutput = projectFacade.getInDirWithPrefix(originalVariant.currentMutatorIdentifier());
 		mutatorSupporter.saveSourceCodeOnDiskProgramVariant(originalVariant, srcOutput);
 
-		Worker worker = WorkerHandler.getWorker();
-		log.info(Thread.currentThread().getName()+" got the worker "+worker.toString());
+		WorkerFacade workerFacade = new WorkerFacade();
 
 		File variant = new File(srcOutput);
 
-		TestCasesProgramValidationResult validationResult = worker.processVariant(variant);
+		TestCasesProgramValidationResult validationResult = workerFacade.processVariant(variant);
 		boolean childCompiles = validationResult.isCompilationSuccess();
-		log.info("Compiles?: "+childCompiles);
-
-		WorkerHandler.putWorker(worker);
-		log.info(Thread.currentThread().getName()+" returned the worker "+worker.toString()+" to the queue");
-
 
 		//Initial validation and fitness
 		boolean validInstance = validateInstance(originalVariant, validationResult);

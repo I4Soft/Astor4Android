@@ -1,6 +1,11 @@
 # Astor4Android
 Astor4Android is an adaptation of the original [Astor](https://github.com/SpoonLabs/astor) to work with Android applications.
 
+Contacts:
+Kayque de S. Teixeira - kayque23@gmail.com
+Celso G Camilo-Junior - celsocamilo@gmail.com
+
+
 ## Compilation
 
 1. Install Android SDK, JDK 1.8 and Maven.

@@ -46,7 +46,7 @@ In Astor4Android, you have the following command line arguments:
 | javacompliancelevel | Compliance level of the Java source code. The recommended value is 8. |
 | stopfirst | Determines if the execution should be stopped after the first fix (true of false). |
 | unitfailing | Failing JUnit test cases separated by a classpath separator (":" on Linux/Mac, ";" on Windows). A test case is the fully qualified class name of the test followed by a #, followed by the method's name. (e.g. com.example.root.bugapp2.ExampleUnitTest#multy) |
-| instrumentationfailing | Failing instrumentation test cases separated by a classpath separator (":" on Linux/Mac, ";" on Windows). A test case is the fully qualified class name of the test followed by a #, followed by the method's name. (e.g. com.example.root.bugapp2.ExampleInstrumentedTest#useAppContext) |
+| instrumentationfailing | Failing instrumentation test cases separated by a classpath separator (":" on Linux/Mac, ";" on Windows). A test case is the fully qualified class name of the test followed by a #, followed by the method's name. (e.g. com.example.root.bugapp2.ExampleInstru#use) |
 | port | Port that all AstorWorkers will connect to. |
 
 
@@ -67,19 +67,17 @@ For the argument "flmode", there are five options:
 | ochiai | Uses the Ochiai method. (Default) |
 | op2 | Uses the Op2 method. |
 | tarantula | Uses the Tarantula method. |
-| Barinel | Uses the Barinel method. |
-| DStar | Uses the DStar method with * = 2. |
+| barinel | Uses the Barinel method. |
+| dstar | Uses the DStar method with * = 2. |
 
 
-To execute Astor4Android, follow these instructions:  
+To run Astor4Android, follow these instructions:  
 
 1. Run at least one [AstorWorker](https://github.com/kayquesousa/astorworker).
 
-2. Run the command  
+2. Run this command (replacing `<arguments>` with the actual arguments):
 
    				mvn exec:java -Dexec.mainClass=br.ufg.inf.astor4android.main.evolution.Astor4AndroidMain -Dexec.args="<arguments>"
-   				
-   replacing <arguments> with the actual arguments.  
 
    Example:  
 

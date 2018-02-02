@@ -26,14 +26,7 @@ Celso G Camilo-Junior - celsocamilo@gmail.com
 
 1. Run at least one [AstorWorker](https://github.com/kayquesousa/astorworker).
 
-2. Build dependencies using Maven and create a file containing their locations separated by a colon:  
-	
-	`mvn  dependency:build-classpath`  
-	`mvn  dependency:build-classpath | egrep -v "(^\[INFO\]|^\[WARNING\])" | tee astor-classpath.txt`  
-
-	You can use the same astor-classpath.txt for future executions.  
-
-3. Run the script inside the astor4android main directory:
+2. Run the script inside the astor4android main directory:
 
 	`./run_example.sh`  
 
@@ -44,16 +37,17 @@ In Astor4Android, you have the following command line arguments:
 | Argument | Description |
 | --- | --- |
 | location | Location of the Android project to repair. The project must be clean. You can clean it using the command `./gradlew clean` inside the project's directory. |
-| mode | Mode of execution. More information on the next table. |
-| androidjar | Location of the android.jar. android.jar is usually found at $ANDROID_HOME/platforms/android-VERSION/android.jar), where VERSION is a number. |
+| mode | Mode of execution. More information in the next tables. |
+| flmode | (Optional) Fault localization mode. More information in the next tables. |
+| loadflsave | (Optional) File containing the results of a previous fault localization run for the same project listed at the "location" argument. This file is created at the working directory (e.g. astor4android/outputMutation/Astor4AndroidMain-Project) after a fault localization is executed on a project and has the extension ".flsave". If you're gonna use the same project multiple times, it's useful to save this file and use this argument to load it. |
+| flthreshold | Minimun suspicious value for a line during fault localization (Number between 0 and 1). If you set a value that is too high, Astor4Android will prompt an option for you to set a new value at runtime. |
 | androidsdk | Location of the Android SDK folder. Usually this argument is set to $ANDROID_HOME. |
 | jvm4testexecution | Location of the java executable. Usually set to %JAVA_HOME/bin. |
-| javacompliancelevel | Compliance level of the source code. 8 is the recommended value. |
+| javacompliancelevel | Compliance level of the Java source code. The recommended value is 8. |
 | stopfirst | Determines if the execution should be stopped after the first fix (true of false). |
-| flthreshold | Minimun suspicious value for fault localization (Number between 0 and 1). |
-| unitfailing | Failing Junit tests separated by a colon. |
-| instrumentationfailing | Failing instrumentation tests separated by a colon. |
-| port | Port that all AstorWorkers will connect on. |
+| unitfailing | Failing JUnit test cases separated by a classpath separator (":" on Linux/Mac, ";" on Windows). A test case is the fully qualified class name of the test followed by a #, followed by the method's name. (e.g. com.example.root.bugapp2.ExampleUnitTest#multy) |
+| instrumentationfailing | Failing instrumentation test cases separated by a classpath separator (":" on Linux/Mac, ";" on Windows). A test case is the fully qualified class name of the test followed by a #, followed by the method's name. (e.g. com.example.root.bugapp2.ExampleInstrumentedTest#useAppContext) |
+| port | Port that all AstorWorkers will connect to. |
 
 
 For the argument "mode", there are four options:
@@ -65,23 +59,29 @@ For the argument "mode", there are four options:
 | mutation | Executes using JMutRepair |
 | custom | Executes using a custom engine |
 
+
+For the argument "flmode", there are five options:
+
+| Mode | Description |
+| --- | --- |
+| ochiai | Uses the Ochiai method. (Default) |
+| op2 | Uses the Op2 method. |
+| tarantula | Uses the Tarantula method. |
+| Barinel | Uses the Barinel method. |
+| DStar | Uses the DStar method with * = 2. |
+
+
 To execute Astor4Android, follow these instructions:  
 
 1. Run at least one [AstorWorker](https://github.com/kayquesousa/astorworker).
 
-2. Build dependencies using Maven and create a file containing their locations separated by a colon:  
-	
-	`mvn  dependency:build-classpath`  
-	`mvn  dependency:build-classpath | egrep -v "(^\[INFO\]|^\[WARNING\])" | tee astor-classpath.txt`  
+2. Run the command  
 
-	You can use the same astor-classpath.txt for future executions.  
-
-3. Run the command  
-
-   				java -cp $(cat astor-classpath.txt):target/classes br.ufg.inf.main.evolution.Astor4AndroidMain 
+   				mvn exec:java -Dexec.mainClass=br.ufg.inf.astor4android.main.evolution.Astor4AndroidMain -Dexec.args="<arguments>"
    				
-   followed by all the other arguments.  
+   replacing <arguments> with the actual arguments.  
 
    Example:  
 
-			java -cp $(cat astor-classpath.txt):target/classes br.ufg.inf.main.evolution.Astor4AndroidMain -mode statement -location $(pwd)/Examples/Simple-Calculator -androidsdk $ANDROID_HOME -androidjar $ANDROID_HOME/platforms/android-25/android.jar -jvm4testexecution $JAVA_HOME/bin  -javacompliancelevel 8 -stopfirst true  -flthreshold 0.9  -instrumentationfailing com.simplemobiletools.calculator.MainActivityTest#rootTest:com.simplemobiletools.calculator.MainActivityTest#complexTest -port 6665  
+			mvn exec:java -Dexec.mainClass=br.ufg.inf.astor4android.main.evolution.Astor4AndroidMain -Dexec.args="-mode statement -location /home/astor4android/Examples/BugApp2 -androidsdk $ANDROID_HOME -jvm4testexecution $JAVA_HOME/bin  -javacompliancelevel 8 -stopfirst true  -flthreshold 0.9  -unitfailing com.example.root.bugapp2.ExampleUnitTest#multy -instrumentationfailing com.example.root.bugapp2.ExampleInstrumentedTest#useAppContext -port 6665"
+  
